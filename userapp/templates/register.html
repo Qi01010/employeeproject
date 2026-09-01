@@ -1,0 +1,33 @@
+{% extends 'basetemplate.html' %} 
+{% block content %}
+<h2 class="text-center">สร้างบัญชีผู้ใช้</h2>
+
+{% if messages %}
+<div class="alert-container">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}" role="alert">
+        {{ message }}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<form method="POST" class="form-container">
+    {% csrf_token %}
+    <div class="col-md-12 mb-3">
+        <label for="username" class="form-label">ชื่อผู้ใช้:</label>
+        <input type="text" class="form-control" name="username">
+    </div>
+    <div class="col-md-12 mb-3">
+        <label for="password" class="form-label">รหัสผ่าน:</label>
+        <input type="password" class="form-control" name="password">
+    </div>
+    <div class="col-md-12 mb-3">
+        <label for="checkpassword" class="form-label">ยืนยันรหัสผ่าน:</label>
+        <input type="password" class="form-control" name="checkpassword">
+    </div>
+    <div class="button-container text-center">
+        <button type="submit" class="btn btn-primary">สร้างบัญชีผู้ใช้</button>
+    </div>
+</form>
+{% endblock %}
