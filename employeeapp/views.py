@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib import messages
 from django.db.models import Q
+from django.core.paginator import Paginator
 from .models import Employee
 from .forms import EmployeeForm
 
@@ -11,14 +12,20 @@ def is_admin(user):
 def index(request):
     search_query = request.GET.get('search', '')
     if search_query:
-        employees = Employee.objects.filter(
+        employee_list = Employee.objects.filter(
             Q(fname__icontains=search_query) |
             Q(lname__icontains=search_query) |
             Q(department__icontains=search_query) |
             Q(address__icontains=search_query)
-        )
+        ).order_by('id')
     else:
-        employees = Employee.objects.all()
+        employee_list = Employee.objects.all().order_by('id')
+    
+    # แบ่งหน้า: 4 คนต่อ 1 หน้า
+    paginator = Paginator(employee_list, 4)
+    page_number = request.GET.get('page')
+    employees = paginator.get_page(page_number)
+
     return render(request, 'index.html', {'employees': employees, 'search_query': search_query})
 
 @user_passes_test(is_admin, login_url='login')

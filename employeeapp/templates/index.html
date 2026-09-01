@@ -2,9 +2,12 @@
 {% block content %}
 
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="fw-bold">ทำเนียบพนักงาน</h2>
+    <div>
+        <h2 class="fw-bold mb-0">ทำเนียบพนักงาน</h2>
+        <p class="text-muted small">จัดการและตรวจสอบรายชื่อบุคลากรทั้งหมดในองค์กร</p>
+    </div>
     {% if request.user.is_staff or request.user.is_superuser %}
-        <a href="{% url 'employee' %}" class="btn btn-success">+ เพิ่มพนักงานใหม่</a>
+        <a href="{% url 'employee' %}" class="btn btn-primary shadow-sm">+ เพิ่มพนักงานใหม่</a>
     {% endif %}
 </div>
 
@@ -19,7 +22,7 @@
 </div>
 {% endif %}
 
-<div class="row row-cols-1 row-cols-md-4 g-4">
+<div class="row row-cols-1 row-cols-md-4 g-4 mb-4">
     {% for emp in employees %}
     <div class="col">
         <div class="card h-100 shadow-sm border-0 position-relative">
@@ -30,15 +33,14 @@
 
             <!-- รูปภาพ -->
             {% if emp.pics %}
-                <img src="{{ emp.pics.url }}" class="card-img-top" alt="{{ emp.fname }}" style="height: 220px; object-fit: cover;">
+                <img src="{{ emp.pics.url }}" class="card-img-top" alt="{{ emp.fname }}" style="height: 200px; object-fit: cover;">
             {% else %}
-                <div class="bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 220px;">
+                <div class="bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 200px;">
                     <span>ไม่มีรูปภาพ</span>
                 </div>
             {% endif %}
 
             <div class="card-body">
-                <!-- ชื่อ และ นามสกุล -->
                 <h5 class="card-title fw-bold text-dark">{{ emp.fname }} {{ emp.lname }}</h5>
                 <span class="badge bg-primary mb-2">{{ emp.department }}</span>
                 <p class="card-text text-muted small mb-1">{{ emp.address }}</p>
@@ -46,7 +48,6 @@
                 <p class="card-text fw-bold text-dark mt-2">{{ emp.salary }} บาท</p>
             </div>
             
-            <!-- ปุ่มแก้ไข / ลบ เฉพาะ Admin -->
             {% if request.user.is_staff or request.user.is_superuser %}
             <div class="card-footer bg-white border-top-0 d-flex justify-content-between gap-2 pb-3">
                 <a href="{% url 'edit' emp.id %}" class="btn btn-outline-warning w-50 btn-sm">แก้ไข</a>
@@ -61,5 +62,34 @@
     </div>
     {% endfor %}
 </div>
+
+<!-- ส่วนแสดงแถบเปลี่ยนหน้า (Pagination) -->
+{% if employees.paginator.num_pages > 1 %}
+<nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if employees.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ employees.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}">ก่อนหน้า</a>
+            </li>
+        {% endif %}
+
+        {% for num in employees.paginator.page_range %}
+            {% if employees.number == num %}
+                <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+            {% else %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}">{{ num }}</a>
+                </li>
+            {% endif %}
+        {% endfor %}
+
+        {% if employees.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ employees.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}">ถัดไป</a>
+            </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
 
 {% endblock %}
