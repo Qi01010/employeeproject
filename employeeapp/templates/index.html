@@ -11,37 +11,45 @@
 {% if messages %}
 <div class="alert-container w-100">
     {% for message in messages %}
-    <div class="alert alert-{{ message.tags }}" role="alert">
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
         {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
     {% endfor %}
 </div>
 {% endif %}
 
-<div class="row row-cols-1 row-cols-md-3 g-4">
+<div class="row row-cols-1 row-cols-md-4 g-4">
     {% for emp in employees %}
     <div class="col">
-        <div class="card h-100 shadow-sm border-0">
+        <div class="card h-100 shadow-sm border-0 position-relative">
+            <!-- Badge เพศ -->
+            <span class="position-absolute top-0 end-0 badge bg-light text-dark m-2 border shadow-sm">
+                {{ emp.gender }}
+            </span>
+
+            <!-- รูปภาพพนักงาน -->
             {% if emp.image %}
-                <img src="{{ emp.image.url }}" class="card-img-top" alt="{{ emp.name }}" style="height: 250px; object-fit: cover;">
+                <img src="{{ emp.image.url }}" class="card-img-top" alt="{{ emp.name }}" style="height: 220px; object-fit: cover;">
             {% else %}
-                <div class="bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 250px;">
+                <div class="bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 220px;">
                     <span>ไม่มีรูปภาพ</span>
                 </div>
             {% endif %}
+
             <div class="card-body">
-                <h5 class="card-title fw-bold">{{ emp.name }}</h5>
-                <p class="card-text text-muted mb-1"><strong>ที่อยู่:</strong> {{ emp.address }}</p>
-                <p class="card-text text-muted mb-1"><strong>เพศ:</strong> {{ emp.gender }}</p>
-                <p class="card-text text-muted mb-1"><strong>วันเกิด:</strong> {{ emp.birth_date }}</p>
-                <p class="card-text text-muted mb-1"><strong>แผนก:</strong> {{ emp.department }}</p>
-                <p class="card-text text-muted mb-1"><strong>เงินเดือน:</strong> {{ emp.salary }} บาท</p>
+                <h5 class="card-title fw-bold text-dark">{{ emp.name }}</h5>
+                <span class="badge bg-primary mb-2">{{ emp.department }}</span>
+                <p class="card-text text-muted small mb-1">{{ emp.address }}</p>
+                <p class="card-text text-muted small mb-1">{{ emp.birth_date }}</p>
+                <p class="card-text fw-bold text-dark mt-2">{{ emp.salary }} บาท</p>
             </div>
             
+            <!-- ปุ่มจัดการข้อมูลเฉพาะ Admin -->
             {% if request.user.is_staff or request.user.is_superuser %}
-            <div class="card-footer bg-white border-top-0 d-flex justify-content-end gap-2 pb-3">
-                <a href="{% url 'edit' emp.id %}" class="btn btn-warning btn-sm">แก้ไข</a>
-                <a href="{% url 'delete' emp.id %}" class="btn btn-danger btn-sm" onclick="return confirm('คุณแน่ใจหรือไม่ว่าต้องการลบข้อมูลนี้?')">ลบ</a>
+            <div class="card-footer bg-white border-top-0 d-flex justify-content-between gap-2 pb-3">
+                <a href="{% url 'edit' emp.id %}" class="btn btn-outline-warning w-50 btn-sm">แก้ไข</a>
+                <a href="{% url 'delete' emp.id %}" class="btn btn-outline-danger w-50 btn-sm" onclick="return confirm('คุณแน่ใจหรือไม่ว่าต้องการลบข้อมูลนี้?')">ลบ</a>
             </div>
             {% endif %}
         </div>
