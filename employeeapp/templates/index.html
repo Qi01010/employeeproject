@@ -2,9 +2,9 @@
 {% block content %}
 
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="fw-bold">รายชื่อพนักงาน</h2>
+    <h2 class="fw-bold">ทำเนียบพนักงาน</h2>
     {% if request.user.is_staff or request.user.is_superuser %}
-        <a href="{% url 'employee' %}" class="btn btn-success">+ เพิ่มพนักงานใหม่</a>
+        <a href="{% url 'employee' %}" class="btn btn-primary">+ เพิ่มพนักงานใหม่</a>
     {% endif %}
 </div>
 
@@ -23,14 +23,14 @@
     {% for emp in employees %}
     <div class="col">
         <div class="card h-100 shadow-sm border-0 position-relative">
-            <!-- Badge เพศ -->
+            <!-- ป้ายเพศ -->
             <span class="position-absolute top-0 end-0 badge bg-light text-dark m-2 border shadow-sm">
                 {{ emp.gender }}
             </span>
 
             <!-- รูปภาพพนักงาน -->
-            {% if emp.image %}
-                <img src="{{ emp.image.url }}" class="card-img-top" alt="{{ emp.name }}" style="height: 220px; object-fit: cover;">
+            {% if emp.pics %}
+                <img src="{{ emp.pics.url }}" class="card-img-top" alt="{{ emp.fname }}" style="height: 220px; object-fit: cover;">
             {% else %}
                 <div class="bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 220px;">
                     <span>ไม่มีรูปภาพ</span>
@@ -38,14 +38,14 @@
             {% endif %}
 
             <div class="card-body">
-                <h5 class="card-title fw-bold text-dark">{{ emp.name }}</h5>
+                <h5 class="card-title fw-bold text-dark">{{ emp.fname }} {{ emp.lname }}</h5>
                 <span class="badge bg-primary mb-2">{{ emp.department }}</span>
                 <p class="card-text text-muted small mb-1">{{ emp.address }}</p>
-                <p class="card-text text-muted small mb-1">{{ emp.birth_date }}</p>
+                <p class="card-text text-muted small mb-1">{{ emp.birthdate }}</p>
                 <p class="card-text fw-bold text-dark mt-2">{{ emp.salary }} บาท</p>
             </div>
             
-            <!-- ปุ่มจัดการข้อมูลเฉพาะ Admin -->
+            <!-- ปุ่มจัดการสำหรับ Admin -->
             {% if request.user.is_staff or request.user.is_superuser %}
             <div class="card-footer bg-white border-top-0 d-flex justify-content-between gap-2 pb-3">
                 <a href="{% url 'edit' emp.id %}" class="btn btn-outline-warning w-50 btn-sm">แก้ไข</a>
@@ -60,5 +60,3 @@
     </div>
     {% endfor %}
 </div>
-
-{% endblock %}

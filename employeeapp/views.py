@@ -1,7 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib import messages
-from django.urls import reverse
 from django.db.models import Q
 from .models import Employee
 from .forms import EmployeeForm
@@ -13,14 +12,13 @@ def index(request):
     search_query = request.GET.get('search', '')
     if search_query:
         employees = Employee.objects.filter(
-            Q(name__icontains=search_query) |
+            Q(fname__icontains=search_query) |
+            Q(lname__icontains=search_query) |
             Q(department__icontains=search_query) |
             Q(address__icontains=search_query)
         )
     else:
         employees = Employee.objects.all()
-    
-    # ส่งตัวแปร employees ออกไปแสดงผล
     return render(request, 'index.html', {'employees': employees, 'search_query': search_query})
 
 @user_passes_test(is_admin, login_url='login')
