@@ -26,12 +26,10 @@
     {% for emp in employees %}
     <div class="col">
         <div class="card h-100 shadow-sm border-0 position-relative">
-            <!-- เพศ -->
             <span class="position-absolute top-0 end-0 badge bg-light text-dark m-2 border shadow-sm">
                 {{ emp.gender }}
             </span>
 
-            <!-- รูปภาพ -->
             {% if emp.pics %}
                 <img src="{{ emp.pics.url }}" class="card-img-top" alt="{{ emp.fname }}" style="height: 200px; object-fit: cover;">
             {% else %}
@@ -63,9 +61,9 @@
     {% endfor %}
 </div>
 
-<!-- ส่วนแสดงแถบเปลี่ยนหน้า (Pagination) -->
-{% if employees.paginator.num_pages > 1 %}
-<nav aria-label="Page navigation" class="mt-4">
+<!-- แถบเลขหน้า Pagination -->
+{% if employees.has_other_pages %}
+<nav aria-label="Page navigation" class="mt-4 mb-5">
     <ul class="pagination justify-content-center">
         {% if employees.has_previous %}
             <li class="page-item">

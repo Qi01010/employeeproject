@@ -17,13 +17,13 @@ def index(request):
             Q(lname__icontains=search_query) |
             Q(department__icontains=search_query) |
             Q(address__icontains=search_query)
-        ).order_by('id')
+        ).order_by('-id')
     else:
-        employee_list = Employee.objects.all().order_by('id')
+        employee_list = Employee.objects.all().order_by('-id')
     
-    # แบ่งหน้า: 4 คนต่อ 1 หน้า
+    # แบ่งหน้า 4 คนต่อ 1 หน้า
     paginator = Paginator(employee_list, 4)
-    page_number = request.GET.get('page')
+    page_number = request.GET.get('page', 1)
     employees = paginator.get_page(page_number)
 
     return render(request, 'index.html', {'employees': employees, 'search_query': search_query})
