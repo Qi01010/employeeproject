@@ -34,8 +34,8 @@ def employee(request):
     return render(request, 'employee.html', {'form': form})
 
 @user_passes_test(is_admin, login_url='login')
-def edit(request, id):
-    emp = get_object_or_404(Employee, id=id)
+def edit(request, emp_id):
+    emp = get_object_or_404(Employee, id=emp_id)
     if request.method == 'POST':
         form = EmployeeForm(request.POST, request.FILES, instance=emp)
         if form.is_valid():
@@ -47,8 +47,8 @@ def edit(request, id):
     return render(request, 'edit.html', {'form': form, 'emp': emp})
 
 @user_passes_test(is_admin, login_url='login')
-def delete(request, id):
-    emp = get_object_or_404(Employee, id=id)
+def delete(request, emp_id):
+    emp = get_object_or_404(Employee, id=emp_id)
     emp.delete()
     messages.success(request, "ลบข้อมูลเรียบร้อย")
     return redirect('index')
