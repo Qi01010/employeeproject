@@ -123,3 +123,7 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 # เพิ่มต่อท้ายด้านล่างสุดของ settings.py
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
+CSRF_TRUSTED_ORIGINS = [
+    'https://employeeproject-671320115.onrender.com',
+    'https://*.onrender.com',
+]
