@@ -14,20 +14,38 @@
 
 <form method="POST" class="form-container shadow-sm">
     {% csrf_token %}
+    <!-- รวมเหลือช่องเดียว: ชื่อ - นามสกุล -->
     <div class="mb-3">
-        <label for="username" class="form-label">ชื่อผู้ใช้:</label>
-        <input type="text" class="form-control" name="username" required>
+        <label for="fullname" class="form-label fw-bold">ชื่อ - นามสกุล: <span class="text-danger">*</span></label>
+        <input type="text" class="form-control" name="fullname" placeholder="เช่น สมชาย ใจดี" required>
     </div>
+
     <div class="mb-3">
-        <label for="password" class="form-label">รหัสผ่าน:</label>
-        <input type="password" class="form-control" name="password" required>
+        <label for="email" class="form-label fw-bold">อีเมล: <span class="text-danger">*</span></label>
+        <input type="email" class="form-control" name="email" placeholder="example@email.com" required>
     </div>
-    <div class="mb-3">
-        <label for="checkpassword" class="form-label">ยืนยันรหัสผ่าน:</label>
-        <input type="password" class="form-control" name="checkpassword" required>
+
+    <div class="mb-2">
+        <label for="password" class="form-label fw-bold">รหัสผ่าน: <span class="text-danger">*</span></label>
+        <input type="password" class="form-control" name="password" placeholder="ระบุรหัสผ่าน" required>
+    </div>
+    
+    <div class="bg-light p-3 rounded mb-3 border">
+        <small class="text-muted d-block fw-bold mb-1">คำแนะนำในการตั้งรหัสผ่านให้ปลอดภัย:</small>
+        <ul class="text-muted small mb-0 ps-3">
+            <li>ความยาวอย่างน้อย <strong>8 ตัวอักษรขึ้นไป</strong></li>
+            <li>ประกอบด้วยตัวพิมพ์เล็ก (a-z) และตัวพิมพ์ใหญ่ (A-Z)</li>
+            <li>มีตัวเลขอย่างน้อย 1 ตัว (0-9)</li>
+            <li>แนะนำให้มีอักขระพิเศษ (เช่น @, #, $, !) เพื่อความปลอดภัยสูงสุด</li>
+        </ul>
+    </div>
+
+    <div class="mb-4">
+        <label for="checkpassword" class="form-label fw-bold">ยืนยันรหัสผ่าน: <span class="text-danger">*</span></label>
+        <input type="password" class="form-control" name="checkpassword" placeholder="กรอกรหัสผ่านอีกครั้ง" required>
     </div>
     <div class="button-container">
-        <button type="submit" class="btn btn-primary w-100">สร้างบัญชีผู้ใช้</button>
+        <button type="submit" class="btn btn-primary w-100 py-2">สร้างบัญชีผู้ใช้</button>
     </div>
 </form>
 {% endblock %}

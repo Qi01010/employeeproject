@@ -1,0 +1,74 @@
+{% extends 'basetemplate.html' %}
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        {% if messages %}
+        <div class="alert-container w-100">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-primary text-white text-center py-3">
+                <h4 class="mb-0 fw-bold">ข้อมูลโปรไฟล์ผู้ใช้</h4>
+            </div>
+            <div class="card-body p-4">
+                <div class="text-center mb-4">
+                    <!-- หัวข้อแสดง ชื่อ - นามสกุล -->
+                    <div class="display-6 fw-bold text-dark">
+                        {% if request.user.first_name %}
+                            {{ request.user.first_name }} {{ request.user.last_name }}
+                        {% else %}
+                            {{ request.user.username }}
+                        {% endif %}
+                    </div>
+                    <span class="badge {% if request.user.is_superuser or request.user.is_staff %}bg-danger{% else %}bg-success{% endif %} fs-6 mt-2">
+                        {% if request.user.is_superuser %}ผู้ดูแลระบบสูงสุด (Superuser)
+                        {% elif request.user.is_staff %}เจ้าหน้าที่ (Staff / Admin)
+                        {% else %}สมาชิกทั่วไป (General User){% endif %}
+                    </span>
+                </div>
+
+                <ul class="list-group list-group-flush mb-4">
+                    <!-- ลบช่อง Username ออก และแสดง ชื่อ - นามสกุล เป็นแถวแรก -->
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span class="text-muted">ชื่อ - นามสกุล:</span>
+                        <span class="fw-bold">
+                            {% if request.user.first_name %}
+                                {{ request.user.first_name }} {{ request.user.last_name }}
+                            {% else %}
+                                {{ request.user.username }}
+                            {% endif %}
+                        </span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span class="text-muted">อีเมล:</span>
+                        <span>{{ request.user.email|default:"ไม่ได้ระบุ" }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span class="text-muted">วันที่สร้างบัญชี:</span>
+                        <span>{{ request.user.date_joined|date:"d M Y, H:i น." }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span class="text-muted">เข้าสู่ระบบล่าสุด:</span>
+                        <span>{{ request.user.last_login|date:"d M Y, H:i น." }}</span>
+                    </li>
+                </ul>
+
+                <div class="d-flex justify-content-center gap-2">
+                    <a href="{% url 'edit_profile' %}" class="btn btn-warning">แก้ไขข้อมูลโปรไฟล์</a>
+                    <a href="{% url 'index' %}" class="btn btn-outline-secondary">กลับหน้าหลัก</a>
+                    <a href="{% url 'logout' %}" class="btn btn-danger">ออกจากระบบ</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

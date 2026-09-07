@@ -21,7 +21,6 @@ def index(request):
     else:
         employee_list = Employee.objects.all().order_by('-id')
     
-    # แบ่งหน้า 4 คนต่อ 1 หน้า
     paginator = Paginator(employee_list, 4)
     page_number = request.GET.get('page', 1)
     employees = paginator.get_page(page_number)

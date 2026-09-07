@@ -15,15 +15,15 @@
 <form method="POST" class="form-container shadow-sm">
     {% csrf_token %}
     <div class="mb-3">
-        <label for="username" class="form-label">ชื่อผู้ใช้:</label>
-        <input type="text" class="form-control" name="username" required>
+        <label for="username" class="form-label fw-bold">ชื่อ - นามสกุล:</label>
+        <input type="text" class="form-control" name="username" placeholder="ระบุชื่อ - นามสกุล ที่ใช้สมัคร" required>
     </div>
-    <div class="mb-3">
-        <label for="password" class="form-label">รหัสผ่าน:</label>
-        <input type="password" class="form-control" name="password" required>
+    <div class="mb-4">
+        <label for="password" class="form-label fw-bold">รหัสผ่าน:</label>
+        <input type="password" class="form-control" name="password" placeholder="ระบุรหัสผ่าน" required>
     </div>
     <div class="button-container">
-        <button type="submit" class="btn btn-primary w-100">เข้าสู่ระบบ</button>
+        <button type="submit" class="btn btn-primary w-100 py-2">เข้าสู่ระบบ</button>
     </div>
 </form>
 {% endblock %}
