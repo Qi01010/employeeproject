@@ -2,32 +2,79 @@
 {% block content %}
 
 <div class="row justify-content-center">
-    <div class="col-md-6">
-        <h3 class="text-center fw-bold mb-4">แก้ไขข้อมูลโปรไฟล์</h3>
+    <div class="col-md-7 col-lg-6">
+        <div class="card shadow-sm border-0 mt-4 p-4" style="background-color: #fcfcfc;">
+            
+            <div class="d-flex align-items-center mb-4 border-bottom pb-3">
+                <a href="{% url 'profile' %}" class="btn btn-outline-secondary btn-sm me-auto">← กลับหน้าหลัก</a>
+                <h3 class="fw-bold mb-0 mx-auto" style="color: #333;">แก้ไขข้อมูลส่วนตัว</h3>
+                <div style="width: 90px;"></div> <!-- ตัวดันเพื่อให้อยู่ตรงกลาง -->
+            </div>
 
-        <form method="POST" class="form-container shadow-sm w-100">
-            {% csrf_token %}
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label for="first_name" class="form-label fw-bold">ชื่อจริง:</label>
-                    <input type="text" class="form-control" name="first_name" value="{{ request.user.first_name }}" placeholder="ระบุชื่อจริง">
+            <!-- ต้องใส่ enctype multipart เพื่อให้อัปโหลดไฟล์ได้ -->
+            <form method="POST" enctype="multipart/form-data" class="w-100">
+                {% csrf_token %}
+                
+                <!-- ส่วนรูปโปรไฟล์วงกลม -->
+                <div class="text-center mb-4">
+                    <div class="position-relative d-inline-block">
+                        {% if profile.profile_pic %}
+                            <img src="{{ profile.profile_pic.url }}" alt="Profile" class="rounded-circle border border-warning border-3" style="width: 130px; height: 130px; object-fit: cover;">
+                        {% else %}
+                            <div class="rounded-circle border border-warning border-3 d-flex align-items-center justify-content-center bg-light" style="width: 130px; height: 130px;">
+                                <span class="text-muted">ไม่มีรูป</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <p class="text-muted small mt-2">คลิกเลือกรูปภาพด้านล่างเพื่อเปลี่ยนรูปโปรไฟล์</p>
                 </div>
-                <div class="col-md-6 mb-3">
-                    <label for="last_name" class="form-label fw-bold">นามสกุล:</label>
-                    <input type="text" class="form-control" name="last_name" value="{{ request.user.last_name }}" placeholder="ระบุนามสกุล">
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-secondary">ชื่อผู้ใช้ (Username)</label>
+                    <input type="text" class="form-control bg-light" value="{{ request.user.username }}" disabled>
+                    <small class="text-muted">Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.</small>
                 </div>
-            </div>
 
-            <div class="mb-4">
-                <label for="email" class="form-label fw-bold">อีเมล:</label>
-                <input type="email" class="form-control" name="email" value="{{ request.user.email }}" placeholder="example@email.com" required>
-            </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="first_name" class="form-label fw-bold text-secondary">ชื่อจริง</label>
+                        <input type="text" class="form-control" name="first_name" value="{{ request.user.first_name }}">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="last_name" class="form-label fw-bold text-secondary">นามสกุล</label>
+                        <input type="text" class="form-control" name="last_name" value="{{ request.user.last_name }}">
+                    </div>
+                </div>
 
-            <div class="d-flex justify-content-center gap-2">
-                <button type="submit" class="btn btn-primary px-4">บันทึกข้อมูล</button>
-                <a href="{% url 'profile' %}" class="btn btn-secondary px-4">ยกเลิก</a>
-            </div>
-        </form>
+                <div class="mb-3">
+                    <label for="phone_number" class="form-label fw-bold text-secondary">เบอร์โทรศัพท์ติดต่อ</label>
+                    <input type="text" class="form-control" name="phone_number" value="{{ profile.phone_number|default:'' }}">
+                </div>
+                
+                <div class="mb-4">
+                    <label for="email" class="form-label fw-bold text-secondary">อีเมล</label>
+                    <input type="email" class="form-control" name="email" value="{{ request.user.email }}" required>
+                </div>
+
+                <div class="mb-4 p-3 bg-white border rounded">
+                    <label for="profile_pic" class="form-label fw-bold text-secondary">อัปโหลดรูปโปรไฟล์ใหม่ (อัตราส่วน 1:1)</label>
+                    
+                    {% if profile.profile_pic %}
+                        <div class="mb-2 text-muted small">
+                            ปัจจุบัน: <a href="{{ profile.profile_pic.url }}" target="_blank">{{ profile.profile_pic.name }}</a>
+                        </div>
+                    {% endif %}
+                    
+                    <p class="mb-1 text-muted small">เปลี่ยนแปลง:</p>
+                    <input type="file" class="form-control" name="profile_pic" accept="image/*">
+                    <small class="text-muted">เลือกภาพจากเครื่อง ระบบจะเปลี่ยนรูปโปรไฟล์ให้อัตโนมัติ</small>
+                </div>
+
+                <button type="submit" class="btn w-100 py-3 fw-bold text-white fs-5" style="background-color: #b45f1b; border-radius: 8px;">
+                    บันทึกข้อมูลส่วนตัว
+                </button>
+            </form>
+        </div>
     </div>
 </div>
 

@@ -14,12 +14,21 @@
         </div>
         {% endif %}
 
-        <div class="card shadow-sm border-0">
+        <div class="card shadow-sm border-0 mt-4">
             <div class="card-header bg-primary text-white text-center py-3">
                 <h4 class="mb-0 fw-bold">ข้อมูลโปรไฟล์ผู้ใช้</h4>
             </div>
             <div class="card-body p-4">
                 <div class="text-center mb-4">
+                    <div class="mb-3">
+                        {% if profile.profile_pic %}
+                            <img src="{{ profile.profile_pic.url }}" alt="Profile" class="rounded-circle border border-warning shadow-sm" style="width: 120px; height: 120px; object-fit: cover;">
+                        {% else %}
+                            <div class="rounded-circle border border-warning bg-light d-inline-flex align-items-center justify-content-center" style="width: 120px; height: 120px;">
+                                <span class="fs-1">👤</span>
+                            </div>
+                        {% endif %}
+                    </div>
                     <!-- หัวข้อแสดง ชื่อ - นามสกุล -->
                     <div class="display-6 fw-bold text-dark">
                         {% if request.user.first_name %}
@@ -36,7 +45,7 @@
                 </div>
 
                 <ul class="list-group list-group-flush mb-4">
-                    <!-- ลบช่อง Username ออก และแสดง ชื่อ - นามสกุล เป็นแถวแรก -->
+                    <!-- แสดง ชื่อ - นามสกุล -->
                     <li class="list-group-item d-flex justify-content-between">
                         <span class="text-muted">ชื่อ - นามสกุล:</span>
                         <span class="fw-bold">
@@ -47,6 +56,13 @@
                             {% endif %}
                         </span>
                     </li>
+                    
+                    <!-- แสดงเบอร์โทรศัพท์ -->
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span class="text-muted">เบอร์โทรศัพท์ติดต่อ:</span>
+                        <span>{{ profile.phone_number|default:"ไม่ได้ระบุ" }}</span>
+                    </li>
+                    
                     <li class="list-group-item d-flex justify-content-between">
                         <span class="text-muted">อีเมล:</span>
                         <span>{{ request.user.email|default:"ไม่ได้ระบุ" }}</span>
