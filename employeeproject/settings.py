@@ -22,7 +22,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'employeeapp',
-    'userapp',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
@@ -42,8 +42,7 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-            BASE_DIR / 'employeeapp' / 'templates',
-            BASE_DIR / 'userapp' / 'templates',
+            BASE_DIR / 'employeeapp' / 'templates',  # ชี้มาที่ employeeapp โฟลเดอร์เดียว
         ],
         'APP_DIRS': True,
         'OPTIONS': {

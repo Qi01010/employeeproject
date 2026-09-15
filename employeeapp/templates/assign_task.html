@@ -1,0 +1,43 @@
+{% extends 'basetemplate.html' %}
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">มอบหมายงานให้: {{ employee.fname }} {{ employee.lname }}</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label">ชื่องาน</label>
+                            <input type="text" name="title" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">รายละเอียดงาน</label>
+                            <textarea name="description" class="form-control" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">สถานะเริ่มต้น</label>
+                            <select name="status" class="form-select">
+                                <option value="pending">รอดำเนินการ</option>
+                                <option value="in_progress">กำลังทำ</option>
+                                <option value="completed">เสร็จสิ้น</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">กำหนดส่ง (วัน/เดือน/ปี)</label>
+                            <input type="date" name="due_date" class="form-control" required>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success">บันทึกการมอบหมายงาน</button>
+                            <a href="{% url 'index' %}" class="btn btn-secondary">ยกเลิก</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

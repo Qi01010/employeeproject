@@ -5,9 +5,9 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('employeeapp.urls')),
-    path('', include('userapp.urls')),
+    path('', include('employeeapp.urls')),  # ให้ดึง URL ทั้งหมดจาก employeeapp
 ]
 
+# รองรับการแสดงผลรูปภาพในโหมดพัฒนา
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

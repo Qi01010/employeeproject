@@ -1,13 +1,195 @@
 {% extends 'basetemplate.html' %}
-{% block content %}
-<h2 class="text-center fw-bold mb-4">เพิ่มข้อมูลพนักงานใหม่</h2>
 
-<form method="POST" enctype="multipart/form-data" class="form-container shadow-sm">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <div class="button-container">
-        <button type="submit" class="btn btn-primary px-4">บันทึกข้อมูล</button>
-        <a href="{% url 'index' %}" class="btn btn-secondary px-4">ยกเลิก</a>
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            
+            <h3 class="mb-4 fw-bold text-center">เพิ่มข้อมูลพนักงานใหม่</h3>
+
+            <!-- ========================================== -->
+            <!-- ส่วนที่ 1: ระบบผู้ช่วย AI ดึงข้อมูลจากเรซูเม่ -->
+            <div class="card border-info mb-4 shadow-sm">
+                <div class="card-header bg-info text-white fw-bold d-flex align-items-center">
+                    <span class="fs-5 me-2">✨</span> ระบบผู้ช่วยดึงข้อมูลจากไฟล์และข้อความ
+                </div>
+                <div class="card-body">
+                    
+                    <!-- ออปชัน 1: โซน Drag & Drop สำหรับไฟล์ PDF / Word -->
+                    <p class="text-muted small mb-2 text-center">
+                        <strong>วิธีที่ 1:</strong> ลากไฟล์เรซูเม่ (PDF หรือ Word) มาวางในกรอบด้านล่าง หรือคลิกเพื่อเลือกไฟล์
+                    </p>
+                    <div id="drop-zone" class="p-4 mb-4 text-center rounded bg-light" style="border: 2px dashed #0dcaf0; cursor: pointer; transition: 0.3s;">
+                        <span class="fs-1">📄</span>
+                        <h6 class="mt-2 text-info fw-bold" id="drop-text">ลากไฟล์มาวาง หรือ คลิกที่นี่</h6>
+                        <input type="file" id="file-input" style="display: none;" accept=".pdf,.docx">
+                    </div>
+
+                    <hr class="text-info my-3">
+
+                    <!-- ออปชัน 2: โซนก๊อปปี้ข้อความมาวางแบบเดิม -->
+                    <p class="text-muted small mb-2 text-center">
+                        <strong>วิธีที่ 2:</strong> ก๊อปปี้ข้อความมาวางโดยตรง
+                    </p>
+                    <textarea id="resumeText" class="form-control mb-3" rows="3" placeholder="ตัวอย่าง: ชื่อ - สกุล : นางสาวสมหญิง ยอดเยี่ยม เงินเดือน: 35000"></textarea>
+                    <div class="d-grid">
+                        <button type="button" class="btn btn-outline-info fw-bold" id="text-btn" onclick="processText()">
+                            🔍 วิเคราะห์จากข้อความ
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+            <!-- ========================================== -->
+
+            <!-- ส่วนที่ 2: ฟอร์มบันทึกข้อมูลพนักงาน -->
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-4">
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="django-form-wrapper">
+                            {{ form.as_p }}
+                        </div>
+                        
+                        <hr class="my-4">
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'index' %}" class="btn btn-secondary px-4">ยกเลิก</a>
+                            <button type="submit" class="btn btn-primary px-5">💾 บันทึกข้อมูลพนักงาน</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </div>
     </div>
-</form>
+</div>
+
+<!-- ========================================== -->
+<!-- สคริปต์ JavaScript สำหรับจัดการไฟล์ลากวาง และ ส่งข้อมูล -->
+<script>
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('file-input');
+    const dropText = document.getElementById('drop-text');
+    const textBtn = document.getElementById('text-btn');
+
+    dropZone.addEventListener('click', () => fileInput.click());
+
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.replace('bg-light', 'bg-info');
+        dropZone.classList.add('text-white');
+    });
+
+    dropZone.addEventListener('dragleave', () => {
+        dropZone.classList.replace('bg-info', 'bg-light');
+        dropZone.classList.remove('text-white');
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.replace('bg-info', 'bg-light');
+        dropZone.classList.remove('text-white');
+        
+        if (e.dataTransfer.files.length > 0) {
+            sendFileToAPI(e.dataTransfer.files[0]);
+        }
+    });
+
+    fileInput.addEventListener('change', () => {
+        if (fileInput.files.length > 0) {
+            sendFileToAPI(fileInput.files[0]);
+        }
+    });
+
+    function sendFileToAPI(file) {
+        dropText.innerHTML = '⏳ กำลังวิเคราะห์ไฟล์ ' + file.name + '...';
+        
+        let formData = new FormData();
+        formData.append('file', file);
+
+        callAPI(formData, () => {
+            dropText.innerHTML = '✨ ดึงข้อมูลจากไฟล์สำเร็จ!';
+            dropZone.style.borderColor = '#198754';
+        }, () => {
+            dropText.innerHTML = 'ลากไฟล์มาวาง หรือ คลิกที่นี่';
+        });
+    }
+
+    function processText() {
+        const text = document.getElementById('resumeText').value;
+        if (!text.trim()) {
+            alert("กรุณาวางข้อความก่อนครับ!");
+            return;
+        }
+
+        const originalText = textBtn.innerHTML;
+        textBtn.innerHTML = '⏳ กำลังวิเคราะห์...';
+        textBtn.disabled = true;
+
+        let formData = new FormData();
+        formData.append('text', text);
+
+        callAPI(formData, () => {
+            alert("✨ ดึงข้อมูลสำเร็จ! ดูผลลัพธ์ในฟอร์มด้านล่างได้เลยครับ");
+            textBtn.innerHTML = originalText;
+            textBtn.disabled = false;
+        }, () => {
+            textBtn.innerHTML = originalText;
+            textBtn.disabled = false;
+        });
+    }
+
+    // ฟังก์ชันหลักสำหรับยิง API ไปที่ Backend
+    function callAPI(formData, onSuccess, onReset) {
+        fetch('/api/employees/parse_resume/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert('❌ ' + data.error);
+                onReset();
+                return;
+            }
+
+            let foundData = false;
+            if(data.fname) { document.querySelector('[name="fname"]').value = data.fname; foundData = true; }
+            if(data.lname) { document.querySelector('[name="lname"]').value = data.lname; foundData = true; }
+            if(data.salary) { document.querySelector('[name="salary"]').value = data.salary; foundData = true; }
+            
+            // ให้ JavaScript เปลี่ยนค่า Dropdown เพศอัตโนมัติ
+            if(data.gender) {
+                let genderDropdown = document.querySelector('select[name="gender"]') || document.querySelector('select[name="sex"]');
+                if (genderDropdown) {
+                    for(let i=0; i < genderDropdown.options.length; i++) {
+                        if(genderDropdown.options[i].text.includes(data.gender)) {
+                            genderDropdown.selectedIndex = i;
+                            foundData = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            if (foundData) {
+                onSuccess();
+            } else {
+                alert("🤔 ระบบไม่พบข้อมูล ชื่อ, นามสกุล หรือ เงินเดือน ครับ");
+                onReset();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert("❌ เกิดข้อผิดพลาดในการเชื่อมต่อระบบ");
+            onReset();
+        });
+    }
+</script>
+<!-- ========================================== -->
 {% endblock %}

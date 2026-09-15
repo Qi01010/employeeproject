@@ -1,0 +1,75 @@
+{% extends 'basetemplate.html' %}
+
+{% block title %}อนุมัติใบลา - EmployeeHub{% endblock %}
+
+{% block content %}
+<div class="container py-2">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold mb-1">อนุมัติใบลา</h3>
+            <p class="text-muted small mb-0">ตรวจสอบและพิจารณาคำขอลาของบุคลากรในองค์กร</p>
+        </div>
+        <a href="{% url 'index' %}" class="btn btn-outline-secondary btn-sm px-3">กลับหน้าหลัก</a>
+    </div>
+
+    <div class="card border-0 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light text-uppercase small text-muted fw-bold">
+                    <tr>
+                        <th class="ps-4 py-3">พนักงาน</th>
+                        <th class="py-3">ประเภทการลา</th>
+                        <th class="py-3">ช่วงวันที่ลา</th>
+                        <th class="py-3">เหตุผล</th>
+                        <th class="text-center py-3">สถานะ</th>
+                        <th class="text-center py-3">จัดการ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for leave in leaves %}
+                    <tr>
+                        <td class="ps-4 fw-semibold py-3">
+                            {{ leave.employee.fname }} {{ leave.employee.lname }}
+                        </td>
+                        <td>
+                            {% if leave.leave_type == 'sick' %}
+                                <span class="badge bg-danger bg-opacity-10 text-danger px-3 py-2 rounded-pill fw-semibold">ลาป่วย</span>
+                            {% elif leave.leave_type == 'personal' %}
+                                <span class="badge bg-warning bg-opacity-10 text-warning px-3 py-2 rounded-pill fw-semibold">ลากิจ</span>
+                            {% else %}
+                                <span class="badge bg-info bg-opacity-10 text-info px-3 py-2 rounded-pill fw-semibold">พักร้อน</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-secondary small">{{ leave.start_date|date:"d M Y" }} - {{ leave.end_date|date:"d M Y" }}</td>
+                        <td class="text-muted small" style="max-width: 200px;">{{ leave.reason }}</td>
+                        <td class="text-center">
+                            {% if leave.status == 'pending' %}
+                                <span class="badge bg-secondary bg-opacity-10 text-secondary px-3 py-2 rounded-pill">รออนุมัติ</span>
+                            {% elif leave.status == 'approved' %}
+                                <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill">อนุมัติแล้ว</span>
+                            {% else %}
+                                <span class="badge bg-danger bg-opacity-10 text-danger px-3 py-2 rounded-pill">ไม่อนุมัติ</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if leave.status == 'pending' %}
+                                <div class="d-flex justify-content-center gap-2">
+                                    <a href="{% url 'update_leave_status' leave.id 'approve' %}" class="btn btn-sm btn-success px-3">อนุมัติ</a>
+                                    <a href="{% url 'update_leave_status' leave.id 'reject' %}" class="btn btn-sm btn-outline-danger px-3">ไม่อนุมัติ</a>
+                                </div>
+                            {% else %}
+                                <span class="text-muted small fst-italic">เสร็จสิ้น</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5 text-muted">ไม่พบคำขอลาในระบบ</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,146 @@
+{% extends 'basetemplate.html' %}
+
+{% block title %}เช็คชื่อเข้างาน (GPS) - EmployeeHub{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-10 col-xl-8">
+        <div class="card border-0 shadow-sm p-4 p-md-5 rounded-4 text-center bg-white">
+            
+            <!-- 📍 ส่วนหัว (Header) -->
+            <div class="mb-4 pb-2">
+                <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-inline-flex justify-content-center align-items-center mb-3" style="width: 70px; height: 70px;">
+                    <i class="bi bi-geo-alt-fill fs-1"></i>
+                </div>
+                <h3 class="fw-bold mb-1 text-dark">ระบบเช็คชื่อเข้างานผ่านพิกัด GPS</h3>
+                <p class="text-muted small mb-0">บันทึกเวลาเข้า-ออกงานด้วยตำแหน่งปัจจุบันของคุณ</p>
+            </div>
+
+            <!-- 🟢 ป้ายสถานะพิกัด (Status Badge) -->
+            <div id="status-banner" class="alert d-inline-flex align-items-center px-4 py-2 rounded-pill mb-4 border-0 shadow-sm" style="background-color: #fff3cd; color: #664d03;">
+                <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                <span class="fw-semibold" id="status-text">กำลังค้นหาพิกัดของคุณ...</span>
+                <span class="mx-2 opacity-50">|</span>
+                <span class="small font-monospace" id="coord-display">Lat: -, Lng: -</span>
+            </div>
+
+            <!-- 🗺️ กรอบแผนที่ (Map Container) -->
+            <div class="map-wrapper mb-5 rounded-4 overflow-hidden shadow-sm border border-2 border-light position-relative" style="height: 400px; width: 100%; background-color: #e9ecef;">
+                <div id="map" class="w-100 h-100 d-flex justify-content-center align-items-center text-muted">
+                    <div class="text-center">
+                        <i class="bi bi-map fs-1 text-secondary opacity-50 mb-2"></i>
+                        <p class="mb-0 small">แผนที่จะแสดงเมื่อได้รับพิกัด GPS</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 🔘 ปุ่มดำเนินการ (Action Buttons) -->
+            <div class="d-grid gap-3 d-sm-flex justify-content-sm-center">
+                <button type="button" id="btn-checkin" class="btn btn-success px-4 px-md-5 py-3 fw-semibold rounded-pill shadow-sm d-flex align-items-center justify-content-center transition-all disabled">
+                    <i class="bi bi-box-arrow-in-right fs-5 me-2"></i> ลงชื่อเข้างาน (Check-in)
+                </button>
+                <button type="button" id="btn-checkout" class="btn btn-outline-danger px-4 px-md-5 py-3 fw-semibold rounded-pill d-flex align-items-center justify-content-center transition-all disabled">
+                    <i class="bi bi-box-arrow-right fs-5 me-2"></i> ลงชื่อออกงาน (Check-out)
+                </button>
+            </div>
+
+            <!-- CSRF Token สำหรับส่งข้อมูล -->
+            {% csrf_token %}
+            
+        </div>
+    </div>
+</div>
+
+<!-- ⚙️ ส่วนของ JavaScript ดึง GPS และแสดง Google Maps -->
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const coordDisplay = document.getElementById('coord-display');
+        const statusBanner = document.getElementById('status-banner');
+        const statusText = document.getElementById('status-text');
+        const mapContainer = document.getElementById('map');
+        const btnCheckin = document.getElementById('btn-checkin');
+        const btnCheckout = document.getElementById('btn-checkout');
+        
+        let currentLat = null;
+        let currentLng = null;
+
+        // 1. ฟังก์ชันดึงตำแหน่ง GPS
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    currentLat = position.coords.latitude;
+                    currentLng = position.coords.longitude;
+                    
+                    // อัปเดตป้ายสถานะเป็นสีเขียว
+                    statusBanner.style.backgroundColor = "#d1e7dd";
+                    statusBanner.style.color = "#0f5132";
+                    statusText.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> ตรวจพบพิกัดสำเร็จ';
+                    coordDisplay.innerText = `Lat: ${currentLat.toFixed(4)}, Lng: ${currentLng.toFixed(4)}`;
+                    
+                    // ฝัง Google Maps ลงในกรอบ
+                    mapContainer.innerHTML = `<iframe width="100%" height="100%" frameborder="0" style="border:0" src="https://maps.google.com/maps?q=${currentLat},${currentLng}&hl=th&z=16&output=embed" allowfullscreen></iframe>`;
+                    
+                    // ปลดล็อกปุ่มให้กดได้
+                    btnCheckin.classList.remove('disabled');
+                    btnCheckout.classList.remove('disabled');
+                },
+                function(error) {
+                    // กรณีผู้ใช้ไม่อนุญาต GPS
+                    statusBanner.style.backgroundColor = "#f8d7da";
+                    statusBanner.style.color = "#842029";
+                    statusText.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-1"></i> ไม่สามารถเข้าถึงตำแหน่งได้';
+                    coordDisplay.innerText = "โปรดอนุญาต GPS ในเบราว์เซอร์";
+                    mapContainer.innerHTML = '<div class="text-danger">ไม่สามารถแสดงแผนที่ได้ เนื่องจากไม่ได้รับอนุญาตให้เข้าถึงตำแหน่ง</div>';
+                }
+            );
+        } else {
+            statusText.innerText = "เบราว์เซอร์ไม่รองรับ GPS";
+        }
+
+        // 2. ฟังก์ชันส่งข้อมูล Check-in / Check-out ไปยัง API
+        function sendAttendanceData(type) {
+            if (!currentLat || !currentLng) {
+                alert("กรุณารอระบบค้นหาพิกัด GPS ก่อนทำรายการ");
+                return;
+            }
+
+            // ในระบบจริง ควรส่ง employee_id ของผู้ใช้คนนั้นไปด้วย
+            // สมมติเราดึงจาก session หรืออาจจะต้องปรับ API เล็กน้อยให้รับค่าจาก user.id
+            const data = {
+                type: type,
+                latitude: currentLat,
+                longitude: currentLng,
+                // employee_id: 'ใส่ไอดีพนักงานตรงนี้' 
+            };
+
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+            fetch('/api/attendance/record/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message) {
+                    alert('✅ ' + data.message);
+                    window.location.reload();
+                } else {
+                    alert('❌ ข้อผิดพลาด: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('เกิดข้อผิดพลาดในการส่งข้อมูล');
+            });
+        }
+
+        // ผูก Event ให้ปุ่มกด
+        btnCheckin.addEventListener('click', () => sendAttendanceData('in'));
+        btnCheckout.addEventListener('click', () => sendAttendanceData('out'));
+    });
+</script>
+{% endblock %}

@@ -1,4 +1,4 @@
-{% extends "basetemplate.html" %}
+{% extends 'basetemplate.html' %}
 
 {% block title %}แก้ไขข้อมูลพนักงาน - EmployeeHub{% endblock %}
 
@@ -62,13 +62,13 @@
 
                         <div class="col-12">
                             <label class="form-label fw-semibold text-secondary">รูปถ่ายพนักงาน</label>
-                            {% if emp.pics %}
+                            {% if emp.image %}
                                 <div class="mb-2">
-                                    <img src="{{ emp.pics.url }}" class="rounded-3 shadow-sm border" style="height: 100px; width: 100px; object-fit: cover;">
+                                    <img src="{{ emp.image.url }}" class="rounded-3 shadow-sm border" style="height: 100px; width: 100px; object-fit: cover;">
                                 </div>
                             {% endif %}
-                            {{ form.pics }}
-                            <div class="text-danger small">{{ form.pics.errors }}</div>
+                            {{ form.image }} <!-- เปลี่ยนจาก form.pics เป็น form.image -->
+                            <div class="text-danger small">{{ form.image.errors }}</div>
                         </div>
                     </div>
 
