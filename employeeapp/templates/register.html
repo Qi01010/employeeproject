@@ -1,51 +1,71 @@
-{% extends 'basetemplate.html' %} 
+{% extends 'basetemplate.html' %}
+
+{% block title %}สร้างบัญชีผู้ใช้ - EmployeeHub{% endblock %}
+
 {% block content %}
-<h2 class="text-center fw-bold mb-4">สร้างบัญชีผู้ใช้</h2>
+<div class="row justify-content-center">
+    <div class="col-12 col-md-10 col-lg-8">
+        <!-- Card โครงสร้างเดิมที่คุณออกแบบไว้ -->
+        <div class="card border-0 shadow-sm p-4 p-md-5 bg-white">
+            <h3 class="text-center fw-bold mb-4">สร้างบัญชีผู้ใช้</h3>
 
-{% if messages %}
-<div class="alert-container">
-    {% for message in messages %}
-    <div class="alert alert-{{ message.tags }}" role="alert">
-        {{ message }}
+            <!-- แจ้งเตือนเวลาสมัครไม่ผ่าน -->
+            {% if form.errors %}
+                <div class="alert alert-danger py-2 small">
+                    <strong>สมัครไม่สำเร็จ:</strong> กรุณาตรวจสอบข้อความสีแดงด้านล่าง
+                </div>
+            {% endif %}
+
+            <form method="POST" id="register-form">
+                {% csrf_token %}
+                
+                {% for field in form %}
+                    <div class="mb-3 text-start">
+                        <label class="form-label fw-bold">{{ field.label }}: <span class="text-danger">*</span></label>
+                        
+                        <!-- ช่องกรอกข้อมูล -->
+                        {{ field }}
+                        
+                        <!-- แจ้งเตือน Error สีแดงเฉพาะจุด -->
+                        {% for error in field.errors %}
+                            <div class="text-danger small mt-1">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- แทรกกล่องคำแนะนำภาษาไทยดั้งเดิม (แทรกหลังช่องรหัสผ่านช่องแรก) -->
+                    {% if forloop.counter == 2 %}
+                    <div class="bg-light p-3 rounded border mb-3 text-start small text-muted">
+                        <strong>คำแนะนำในการตั้งรหัสผ่านให้ปลอดภัย:</strong>
+                        <ul class="mb-0 mt-1 ps-3">
+                            <li>ความยาวอย่างน้อย 8 ตัวอักษรขึ้นไป</li>
+                            <li>ประกอบด้วยตัวพิมพ์เล็ก (a-z) และตัวพิมพ์ใหญ่ (A-Z)</li>
+                            <li>มีตัวเลขอย่างน้อย 1 ตัว (0-9)</li>
+                            <li>แนะนำให้มีอักขระพิเศษ (เช่น @, #, $, !) เพื่อความปลอดภัยสูงสุด</li>
+                        </ul>
+                    </div>
+                    {% endif %}
+                {% endfor %}
+
+                <button type="submit" class="btn btn-primary w-100 py-2 mt-3 fw-bold">สร้างบัญชีผู้ใช้</button>
+            </form>
+        </div>
     </div>
-    {% endfor %}
 </div>
-{% endif %}
 
-<form method="POST" class="form-container shadow-sm">
-    {% csrf_token %}
-    <!-- รวมเหลือช่องเดียว: ชื่อ - นามสกุล -->
-    <div class="mb-3">
-        <label for="fullname" class="form-label fw-bold">ชื่อ - นามสกุล: <span class="text-danger">*</span></label>
-        <input type="text" class="form-control" name="fullname" placeholder="เช่น สมชาย ใจดี" required>
-    </div>
+<style>
+    /* บังคับซ่อนคำแนะนำภาษาอังกฤษที่ติดมากับ Django */
+    .helptext { display: none !important; } 
+</style>
 
-    <div class="mb-3">
-        <label for="email" class="form-label fw-bold">อีเมล: <span class="text-danger">*</span></label>
-        <input type="email" class="form-control" name="email" placeholder="example@email.com" required>
-    </div>
-
-    <div class="mb-2">
-        <label for="password" class="form-label fw-bold">รหัสผ่าน: <span class="text-danger">*</span></label>
-        <input type="password" class="form-control" name="password" placeholder="ระบุรหัสผ่าน" required>
-    </div>
-    
-    <div class="bg-light p-3 rounded mb-3 border">
-        <small class="text-muted d-block fw-bold mb-1">คำแนะนำในการตั้งรหัสผ่านให้ปลอดภัย:</small>
-        <ul class="text-muted small mb-0 ps-3">
-            <li>ความยาวอย่างน้อย <strong>8 ตัวอักษรขึ้นไป</strong></li>
-            <li>ประกอบด้วยตัวพิมพ์เล็ก (a-z) และตัวพิมพ์ใหญ่ (A-Z)</li>
-            <li>มีตัวเลขอย่างน้อย 1 ตัว (0-9)</li>
-            <li>แนะนำให้มีอักขระพิเศษ (เช่น @, #, $, !) เพื่อความปลอดภัยสูงสุด</li>
-        </ul>
-    </div>
-
-    <div class="mb-4">
-        <label for="checkpassword" class="form-label fw-bold">ยืนยันรหัสผ่าน: <span class="text-danger">*</span></label>
-        <input type="password" class="form-control" name="checkpassword" placeholder="กรอกรหัสผ่านอีกครั้ง" required>
-    </div>
-    <div class="button-container">
-        <button type="submit" class="btn btn-primary w-100 py-2">สร้างบัญชีผู้ใช้</button>
-    </div>
-</form>
+<script>
+    // เติมคลาส Bootstrap ให้ช่องกรอกข้อมูลกลับมาสวยงามเต็มจอเหมือน UI เดิม
+    document.addEventListener("DOMContentLoaded", function() {
+        var inputs = document.querySelectorAll('#register-form input');
+        inputs.forEach(function(input) {
+            if (input.type !== 'hidden' && input.type !== 'submit') {
+                input.classList.add('form-control');
+            }
+        });
+    });
+</script>
 {% endblock %}

@@ -1,29 +1,33 @@
-{% extends 'basetemplate.html' %} 
+{% extends 'basetemplate.html' %}
+
+{% block title %}เข้าสู่ระบบ - EmployeeHub{% endblock %}
+
 {% block content %}
-<h2 class="text-center fw-bold mb-4">เข้าสู่ระบบ</h2>
+<div class="row justify-content-center">
+    <div class="col-12 col-md-8 col-lg-6">
+        <div class="card border-0 shadow-sm p-4 p-md-5 bg-white">
+            <h3 class="text-center fw-bold mb-4">เข้าสู่ระบบ</h3>
 
-{% if messages %}
-<div class="alert-container">
-    {% for message in messages %}
-    <div class="alert alert-{{ message.tags }}" role="alert">
-        {{ message }}
+            <!-- แจ้งเตือนเวลาล็อกอินผิด -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-danger py-2 small">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="POST">
+                {% csrf_token %}
+                <div class="mb-3 text-start">
+                    <label class="form-label fw-bold">ชื่อผู้ใช้ (Username):</label>
+                    <input type="text" name="username" class="form-control" placeholder="ระบุชื่อผู้ใช้" required>
+                </div>
+                <div class="mb-4 text-start">
+                    <label class="form-label fw-bold">รหัสผ่าน:</label>
+                    <input type="password" name="password" class="form-control" placeholder="ระบุรหัสผ่าน" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">เข้าสู่ระบบ</button>
+            </form>
+        </div>
     </div>
-    {% endfor %}
 </div>
-{% endif %}
-
-<form method="POST" class="form-container shadow-sm">
-    {% csrf_token %}
-    <div class="mb-3">
-        <label for="username" class="form-label fw-bold">ชื่อ - นามสกุล:</label>
-        <input type="text" class="form-control" name="username" placeholder="ระบุชื่อ - นามสกุล ที่ใช้สมัคร" required>
-    </div>
-    <div class="mb-4">
-        <label for="password" class="form-label fw-bold">รหัสผ่าน:</label>
-        <input type="password" class="form-control" name="password" placeholder="ระบุรหัสผ่าน" required>
-    </div>
-    <div class="button-container">
-        <button type="submit" class="btn btn-primary w-100 py-2">เข้าสู่ระบบ</button>
-    </div>
-</form>
 {% endblock %}

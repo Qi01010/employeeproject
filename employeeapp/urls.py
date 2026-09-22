@@ -18,6 +18,7 @@ urlpatterns = [
     path('employee/', views.employee, name='employee'),
     path('edit/<int:emp_id>/', views.edit, name='edit'),
     path('delete/<int:emp_id>/', views.delete, name='delete'),
+    path('dashboard/', views.dashboard, name='dashboard'),
     
     # 📋 ระบบจัดการงาน (Tasks)
     path('assign-task/<int:emp_id>/', views.assign_task, name='assign_task'),
@@ -40,4 +41,9 @@ urlpatterns = [
     # 🌐 ระบบ API Endpoint
     path('api/', include(router.urls)),
     path('api/attendance/record/', views.record_attendance, name='record_attendance'),
+
+    path('equipment/', views.equipment_list, name='equipment_list'),
+    path('equipment/borrow/<int:eq_id>/', views.borrow_equipment, name='borrow_equipment'),
+    path('equipment/return/<int:borrow_id>/', views.return_equipment, name='return_equipment'),
+    path('payroll/', views.payroll_report, name='payroll_report'),
 ]

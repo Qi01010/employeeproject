@@ -1,0 +1,82 @@
+{% extends 'basetemplate.html' %}
+
+{% block title %}ภาพรวมการทำงาน - EmployeeHub{% endblock %}
+
+{% block content %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <h4 class="fw-bold mb-3"><i class="bi bi-bar-chart-line-fill text-primary me-2"></i> ภาพรวมการทำงานประจำวัน</h4>
+    </div>
+    
+    <!-- ฝั่งซ้าย: กล่องตัวเลขสรุป -->
+    <div class="col-md-8">
+        <div class="row">
+            <div class="col-md-6 col-lg-3 mb-3">
+                <div class="card border-0 shadow-sm bg-primary text-white h-100 rounded-4">
+                    <div class="card-body text-center py-4">
+                        <h6 class="fw-bold opacity-75">พนักงานทั้งหมด</h6>
+                        <h2 class="fw-bold mb-0">{{ total_emp }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3 mb-3">
+                <div class="card border-0 shadow-sm bg-success text-white h-100 rounded-4">
+                    <div class="card-body text-center py-4">
+                        <h6 class="fw-bold opacity-75">มาทำงาน (In)</h6>
+                        <h2 class="fw-bold mb-0">{{ present_count }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3 mb-3">
+                <div class="card border-0 shadow-sm bg-warning text-dark h-100 rounded-4">
+                    <div class="card-body text-center py-4">
+                        <h6 class="fw-bold opacity-75">ลางาน (Leave)</h6>
+                        <h2 class="fw-bold mb-0">{{ leave_count }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3 mb-3">
+                <div class="card border-0 shadow-sm bg-danger text-white h-100 rounded-4">
+                    <div class="card-body text-center py-4">
+                        <h6 class="fw-bold opacity-75">ขาด/ยังไม่เข้า</h6>
+                        <h2 class="fw-bold mb-0">{{ absent_count }}</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ฝั่งขวา: กราฟโดนัท -->
+    <div class="col-md-4 mb-3">
+        <div class="card border-0 shadow-sm rounded-4 h-100 d-flex justify-content-center align-items-center p-3 bg-white">
+            <canvas id="attendanceChart" style="max-height: 180px;"></canvas>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const ctx = document.getElementById('attendanceChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['มาทำงาน', 'ลางาน', 'ขาด/ยังไม่เข้า'],
+                datasets: [{
+                    data: [{{ present_count }}, {{ leave_count }}, {{ absent_count }}],
+                    backgroundColor: ['#198754', '#ffc107', '#dc3545'],
+                    borderWidth: 0,
+                    hoverOffset: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'right', labels: { boxWidth: 12, font: { size: 12 } } } },
+                cutout: '70%'
+            }
+        });
+    });
+</script>
+{% endblock %}

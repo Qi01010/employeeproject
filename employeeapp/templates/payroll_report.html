@@ -1,0 +1,38 @@
+{% extends 'basetemplate.html' %}
+{% block title %}คำนวณเงินเดือน - EmployeeHub{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold"><i class="bi bi-cash-stack me-2 text-success"></i> รายงานสรุปเงินเดือนพนักงาน (ประจำเดือน: {{ current_month }})</h2>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>ชื่อ-นามสกุล</th>
+                        <th>แผนก</th>
+                        <th>มาทำงาน (วัน)</th>
+                        <th>เงินเดือนตั้งต้น (บาท)</th>
+                        <th>เรทต่อวัน (บาท)</th>
+                        <th>เงินเดือนรวมสุทธิ (บาท)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in payroll_data %}
+                    <tr>
+                        <td class="fw-bold">{{ item.employee.fname }} {{ item.employee.lname }}</td>
+                        <td><span class="badge bg-primary">{{ item.employee.department }}</span></td>
+                        <td><span class="text-success fw-bold">{{ item.worked_days }} วัน</span></td>
+                        <td>{{ item.monthly_salary|floatformat:2 }} ฿</td>
+                        <td>{{ item.daily_rate|floatformat:2 }} ฿</td>
+                        <td class="fw-bold text-success fs-5">{{ item.total_pay|floatformat:2 }} ฿</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

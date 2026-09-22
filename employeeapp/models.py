@@ -16,7 +16,8 @@ class Employee(models.Model):
     address = models.TextField(blank=True, null=True, verbose_name="ที่อยู่")
     image = models.ImageField(upload_to='employee_images/', blank=True, null=True, verbose_name="รูปภาพพนักงาน")
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True, verbose_name="วันที่บันทึก")
-
+    user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='employee_record')
+    
     def __str__(self):
         return f"{self.fname} {self.lname}"
 
@@ -76,3 +77,32 @@ class Profile(models.Model):
 
     def __str__(self):
         return f"Profile of {self.user.username}"
+    
+# 💻 1. โมเดลเก็บข้อมูลอุปกรณ์ในบริษัท
+class Equipment(models.Model):
+    name = models.CharField(max_length=100) # ชื่ออุปกรณ์ (เช่น โน้ตบุ๊ก Dell, โปรเจกเตอร์)
+    serial_number = models.CharField(max_length=50, unique=True) # Serial Number หรือรหัสโค้ด
+    category = models.CharField(max_length=50, blank=True, null=True) # หมวดหมู่
+    status = models.CharField(
+        max_length=20, 
+        choices=[('available', 'พร้อมใช้งาน'), ('borrowed', 'กำลังถูกยืม'), ('maintenance', 'ซ่อมบำรุง')], 
+        default='available'
+    )
+    
+    def __str__(self):
+        return f"{self.name} ({self.serial_number})"
+
+# 📋 2. โมเดลบันทึกประวัติการยืม-คืน
+class EquipmentBorrow(models.Model):
+    equipment = models.ForeignKey(Equipment, on_delete=models.CASCADE)
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
+    borrow_date = models.DateField(auto_now_add=True)
+    return_date = models.DateField(blank=True, null=True)
+    status = models.CharField(
+        max_length=20, 
+        choices=[('borrowing', 'กำลังยืม'), ('returned', 'คืนแล้ว')], 
+        default='borrowing'
+    )
+
+    def __str__(self):
+        return f"{self.employee} ยืม {self.equipment}"

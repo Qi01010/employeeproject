@@ -11,14 +11,14 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from .models import Employee, Task, Attendance, LeaveRequest, Profile
+from .models import Employee, Task, Attendance, LeaveRequest, Profile, Equipment, EquipmentBorrow
 from .serializers import EmployeeSerializer, TaskSerializer
 from .forms import EmployeeForm, LeaveForm, ProfileForm
 
 def is_admin(user):
     return user.is_superuser or user.is_staff
 
-# ================= 🔐 ระบบบัญชี (Login/Register) =================
+# ================= 🔐 ระบบบัญชี =================
 def register(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
@@ -57,24 +57,21 @@ def profile(request):
 def profile_edit(request):
     user = request.user
     user_profile, created = Profile.objects.get_or_create(user=user)
-    
     if request.method == 'POST':
         user.first_name = request.POST.get('first_name', '')
         user.last_name = request.POST.get('last_name', '')
         user.email = request.POST.get('email', '')
         user.save()
-        
         form = ProfileForm(request.POST, request.FILES, instance=user_profile)
         if form.is_valid():
             form.save()
             return redirect('profile')
     else:
         form = ProfileForm(instance=user_profile)
-        
     return render(request, 'profile_edit.html', {'form': form, 'profile': user_profile})
 
 
-# ================= 🏠 ระบบหลักและพนักงาน =================
+# ================= 🏠 ระบบหน้าหลัก และ ทำเนียบพนักงาน =================
 @login_required(login_url='login')
 def index(request):
     search_query = request.GET.get('search', '')
@@ -128,6 +125,26 @@ def delete(request, emp_id):
     return redirect('index')
 
 
+# ================= 📊 ระบบ Dashboard สถิติ =================
+@user_passes_test(is_admin, login_url='login')
+def dashboard(request):
+    today = timezone.localdate()
+    total_emp = Employee.objects.count()
+    present_count = Attendance.objects.filter(date=today, check_in__isnull=False).values('employee').distinct().count()
+    leave_count = LeaveRequest.objects.filter(start_date__lte=today, end_date__gte=today, status='approved').count()
+    absent_count = total_emp - present_count - leave_count
+    if absent_count < 0: 
+        absent_count = 0
+
+    context = {
+        'total_emp': total_emp,
+        'present_count': present_count,
+        'leave_count': leave_count,
+        'absent_count': absent_count
+    }
+    return render(request, 'dashboard.html', context)
+
+
 # ================= 📋 ระบบงาน =================
 @user_passes_test(is_admin, login_url='login')
 def assign_task(request, emp_id):
@@ -158,15 +175,24 @@ def delete_task(request, task_id):
 
 
 # ================= 📍 ระบบลงเวลาและใบลา =================
+@login_required(login_url='login')
 def attendance_page(request):
-    return render(request, 'attendance.html')
+    try:
+        employee = Employee.objects.get(user=request.user)
+    except Employee.DoesNotExist:
+        employee = None
+    return render(request, 'attendance.html', {'employee': employee})
 
 @user_passes_test(is_admin, login_url='login')
 def attendance_report(request):
     today = timezone.localdate()
     employees = Employee.objects.all()
-    attendances = {att.employee_id: att for att in Attendance.objects.filter(date=today)}
-    return render(request, 'attendance_report.html', {'employees': employees, 'attendances': attendances, 'today': today})
+    
+    # ดึงข้อมูลการลงเวลาของวันนี้มาผูกกับพนักงานแต่ละคนโดยตรงเพื่อความเสถียร
+    for emp in employees:
+        emp.today_att = Attendance.objects.filter(employee=emp, date=today).first()
+
+    return render(request, 'attendance_report.html', {'employees': employees, 'today': today})
 
 def request_leave(request):
     if request.method == 'POST':
@@ -194,6 +220,85 @@ def update_leave_status(request, leave_id, action):
     return redirect('leave_approval_list')
 
 
+# ================= 💻 ระบบยืม-คืนอุปกรณ์ =================
+@login_required(login_url='login')
+def equipment_list(request):
+    equipments = Equipment.objects.all()
+    borrows = EquipmentBorrow.objects.all().order_by('-id')
+    return render(request, 'equipment_list.html', {'equipments': equipments, 'borrows': borrows})
+
+@login_required(login_url='login')
+def borrow_equipment(request, eq_id):
+    equipment = get_object_or_404(Equipment, id=eq_id)
+    if equipment.status != 'available':
+        messages.error(request, 'อุปกรณ์นี้ไม่พร้อมใช้งาน')
+        return redirect('equipment_list')
+    
+    try:
+        employee_obj = Employee.objects.get(user=request.user)
+    except Employee.DoesNotExist:
+        messages.error(request, 'บัญชีของคุณยังไม่ได้ผูกกับข้อมูลพนักงาน')
+        return redirect('equipment_list')
+
+    if request.method == 'POST':
+        EquipmentBorrow.objects.create(equipment=equipment, employee=employee_obj, status='borrowing')
+        equipment.status = 'borrowed'
+        equipment.save()
+        messages.success(request, 'ยืมอุปกรณ์สำเร็จ!')
+        return redirect('equipment_list')
+        
+    return render(request, 'borrow_form.html', {'equipment': equipment})
+
+@user_passes_test(is_admin, login_url='login')
+def return_equipment(request, borrow_id):
+    borrow_obj = get_object_or_404(EquipmentBorrow, id=borrow_id)
+    if borrow_obj.status == 'borrowing':
+        borrow_obj.status = 'returned'
+        borrow_obj.return_date = timezone.localdate()
+        borrow_obj.save()
+        
+        eq = borrow_obj.equipment
+        eq.status = 'available'
+        eq.save()
+        messages.success(request, 'รับคืนอุปกรณ์เรียบร้อยแล้ว')
+    return redirect('equipment_list')
+
+
+# ================= 💵 ระบบคำนวณเงินเดือน (Payroll) =================
+@user_passes_test(is_admin, login_url='login')
+def payroll_report(request):
+    employees = Employee.objects.all()
+    payroll_data = []
+    
+    today = timezone.localdate()
+    current_month = today.month
+    current_year = today.year
+
+    for emp in employees:
+        worked_days = Attendance.objects.filter(
+            employee=emp, 
+            date__year=current_year, 
+            date__month=current_month,
+            check_in__isnull=False
+        ).count()
+        
+        monthly_salary = float(emp.salary or 0)
+        daily_rate = monthly_salary / 30 if monthly_salary > 0 else 0
+        total_pay = worked_days * daily_rate
+
+        payroll_data.append({
+            'employee': emp,
+            'worked_days': worked_days,
+            'monthly_salary': monthly_salary,
+            'daily_rate': round(daily_rate, 2),
+            'total_pay': round(total_pay, 2),
+            'month': current_month,
+            'year': current_year
+        })
+
+    return render(request, 'payroll_report.html', {'payroll_data': payroll_data, 'current_month': current_month})
+
+
 # ================= 🌐 ระบบ API =================
 class EmployeeViewSet(viewsets.ModelViewSet):
     queryset = Employee.objects.all()
@@ -205,15 +310,18 @@ class TaskViewSet(viewsets.ModelViewSet):
 
 @api_view(['POST'])
 def record_attendance(request):
-    employee_id = request.data.get('employee_id')
+    user = request.user
+    if not user.is_authenticated:
+        return Response({'error': 'กรุณาเข้าสู่ระบบ'}, status=status.HTTP_401_UNAUTHORIZED)
+        
+    try:
+        employee_obj = Employee.objects.get(user=user)
+    except Employee.DoesNotExist:
+        return Response({'error': 'บัญชีนี้ยังไม่ได้เชื่อมโยงกับรายชื่อพนักงาน'}, status=status.HTTP_404_NOT_FOUND)
+
     latitude = request.data.get('latitude')
     longitude = request.data.get('longitude')
     att_type = request.data.get('type')
-
-    try:
-        employee_obj = Employee.objects.get(id=employee_id)
-    except Employee.DoesNotExist:
-        return Response({'error': 'ไม่พบพนักงาน'}, status=status.HTTP_404_NOT_FOUND)
 
     today = timezone.localdate()
     if att_type == 'in':

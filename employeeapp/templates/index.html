@@ -1,161 +1,130 @@
 {% extends 'basetemplate.html' %}
 
-{% block content %}
-<div class="container mt-4">
-    <!-- ส่วนหัวของหน้า -->
-    <div class="d-flex justify-content-between align-items-end mb-4">
-        <div>
-            <h2 class="fw-bold mb-1">ทำเนียบพนักงาน</h2>
-            <p class="text-muted mb-0">จัดการและตรวจสอบรายชื่อบุคลากรทั้งหมดในองค์กร</p>
-        </div>
-        {% if request.user.is_superuser or request.user.is_staff %}
-        <a href="{% url 'employee' %}" class="btn btn-primary">+ เพิ่มพนักงานใหม่</a>
-        {% endif %}
-    </div>
+{% block title %}หน้าหลัก - EmployeeHub{% endblock %}
 
-    <!-- ส่วนแสดงการ์ดพนักงาน -->
-    <div class="row">
-        {% for emp in employees %}
-        <div class="col-md-3 mb-4">
-            <div class="card shadow-sm h-100 border-0 rounded-3 overflow-hidden">
+{% block content %}
+<!-- ================= 👥 ทำเนียบพนักงาน ================= -->
+<div class="d-flex justify-content-between align-items-end mb-4">
+    <div>
+        <h2 class="fw-bold mb-1">ทำเนียบพนักงาน</h2>
+        <p class="text-muted mb-0">จัดการและตรวจสอบรายชื่อบุคลากรทั้งหมดในองค์กร</p>
+    </div>
+    <!-- ปุ่มเพิ่มพนักงาน (แสดงเฉพาะ Admin) -->
+    {% if user.is_superuser or user.is_staff %}
+    <div>
+        <a href="{% url 'employee' %}" class="btn btn-primary rounded-pill shadow-sm px-4">
+            <i class="bi bi-plus-lg me-2"></i> เพิ่มพนักงานใหม่
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Grid แสดงรายชื่อพนักงาน -->
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4 mb-4">
+    {% for emp in employees %}
+    <div class="col">
+        <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden">
+            
+            <!-- รูปภาพพนักงาน -->
+            <div class="position-relative" style="height: 200px; background-color: #6c757d;">
+                {% if emp.image %}
+                    <img src="{{ emp.image.url }}" class="w-100 h-100" style="object-fit: cover;" alt="Profile">
+                {% else %}
+                    <div class="w-100 h-100 d-flex justify-content-center align-items-center text-white">ไม่มีรูปภาพ</div>
+                {% endif %}
+                <span class="badge bg-light text-dark position-absolute top-0 end-0 m-2">{{ emp.gender }}</span>
+            </div>
+            
+            <!-- ข้อมูลส่วนตัว -->
+            <div class="card-body">
+                <h5 class="card-title fw-bold mb-2">{{ emp.fname }} {{ emp.lname }}</h5>
+                <span class="badge bg-primary mb-3">{{ emp.department }}</span>
                 
-                <div class="position-relative">
-                    {% if emp.image %}
-                        <img src="{{ emp.image.url }}" class="card-img-top" alt="รูปพนักงาน" style="height: 220px; object-fit: cover;">
-                    {% else %}
-                        <div class="bg-secondary text-white d-flex justify-content-center align-items-center card-img-top" style="height: 220px;">ไม่มีรูปภาพ</div>
-                    {% endif %}
-                    <span class="badge bg-light text-dark position-absolute top-0 end-0 m-2 border">{{ emp.gender }}</span>
-                </div>
+                <p class="card-text small text-muted mb-1">{{ emp.address }}</p>
+                <p class="card-text small text-muted mb-2">เกิด: {{ emp.birthdate|default:"-" }}</p>
+                <h6 class="fw-bold mb-3">{{ emp.salary }} บาท</h6>
                 
-                <div class="card-body">
-                    <h5 class="card-title fw-bold text-dark">{{ emp.fname }} {{ emp.lname }}</h5>
-                    <span class="badge bg-primary mb-2">{{ emp.department|default:"ไม่ระบุแผนก" }}</span>
-                    <p class="card-text text-muted small mb-1">{{ emp.address|default:"-" }}</p>
-                    <p class="card-text text-muted small mb-1">เกิด: {{ emp.birthdate|default:"-" }}</p>
-                    <p class="card-text fw-bold text-dark mt-2">{{ emp.salary|default:"0.00" }} บาท</p>
-                    
-                    <!-- 📍 ส่วนแสดงสถานะการลงเวลาของวันนี้ -->
-                    <hr class="text-muted">
-                    <h6 class="fw-bold text-success mb-2" style="font-size: 0.9em;"><i class="bi bi-clock-history"></i> สถานะลงเวลาวันนี้:</h6>
+                <hr class="text-muted opacity-25">
+                
+                <!-- สถานะการลงเวลาวันนี้ -->
+                <p class="small fw-bold text-success mb-2"><i class="bi bi-clock-history"></i> สถานะลงเวลาวันนี้:</p>
+                <div class="small text-muted mb-3">
                     {% if emp.today_attendance %}
-                        <div class="p-2 border rounded bg-light small mb-2">
-                            <div class="text-success fw-semibold">
+                        {% if emp.today_attendance.check_in %}
+                            <div class="text-success mb-1">
                                 <i class="bi bi-box-arrow-in-right"></i> เข้า: {{ emp.today_attendance.check_in|date:"H:i" }} น.
                             </div>
-                            {% if emp.today_attendance.check_out %}
-                                <div class="text-danger fw-semibold">
-                                    <i class="bi bi-box-arrow-left"></i> ออก: {{ emp.today_attendance.check_out|date:"H:i" }} น.
-                                </div>
-                            {% else %}
-                                <div class="text-muted">ออก: ยังไม่ออกงาน</div>
-                            {% endif %}
-                            
-                            {% if emp.today_attendance.latitude %}
-                                <div class="mt-1">
-                                    <a href="https://maps.google.com/?q={{ emp.today_attendance.latitude }},{{ emp.today_attendance.longitude }}" target="_blank" class="btn btn-sm btn-outline-info py-0 px-2" style="font-size: 0.75em;">
-                                        📍 ดูพิกัด GPS
-                                    </a>
-                                </div>
-                            {% endif %}
+                        {% endif %}
+                        {% if emp.today_attendance.check_out %}
+                            <div class="text-danger mb-1">
+                                <i class="bi bi-box-arrow-right"></i> ออก: {{ emp.today_attendance.check_out|date:"H:i" }} น.
+                            </div>
+                        {% else %}
+                            <div class="text-muted mb-1">ออก: ยังไม่ออกงาน</div>
+                        {% endif %}
+                        <div class="mt-2">
+                            <span class="badge rounded-pill border border-info text-info bg-white">
+                                <i class="bi bi-geo-alt"></i> หมุด GPS
+                            </span>
                         </div>
                     {% else %}
-                        <p class="text-muted fst-italic small mb-2">⏳ วันนี้ยังไม่ได้ลงเวลา</p>
-                    {% endif %}
-
-                    <!-- ส่วนงานที่ได้รับมอบหมาย -->
-                    <hr class="text-muted">
-                    <h6 class="fw-bold text-primary mb-2" style="font-size: 0.9em;">งานที่ได้รับมอบหมาย:</h6>
-                    
-                    {% if emp.tasks.all %}
-                        {% for task in emp.tasks.all %}
-                            <div class="mb-2 p-2 border rounded bg-light position-relative" style="font-size: 0.85em;">
-                                
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <strong class="text-dark">{{ task.title }}</strong>
-                                    {% if request.user.is_superuser or request.user.is_staff %}
-                                    <a href="{% url 'delete_task' task.id %}" class="text-danger text-decoration-none" onclick="return confirm('คุณต้องการลบงานนี้ใช่หรือไม่?');" title="ลบงานทิ้ง">
-                                        ❌
-                                    </a>
-                                    {% endif %}
-                                </div>
-                                
-                                <span class="text-muted">กำหนด: {{ task.due_date|date:"d M Y" }}</span><br>
-                                
-                                {% if task.status == 'pending' %}
-                                    <span class="badge bg-secondary mt-1 mb-2">รอดำเนินการ</span>
-                                {% elif task.status == 'in_progress' %}
-                                    <span class="badge bg-warning text-dark mt-1 mb-2">กำลังทำ</span>
-                                {% elif task.status == 'completed' %}
-                                    <span class="badge bg-success mt-1 mb-2">เสร็จสิ้น</span>
-                                {% endif %}
-                                
-                                {% if request.user.is_authenticated %}
-                                <form method="POST" action="{% url 'update_task_status' task.id %}" class="d-flex align-items-center border-top pt-2 mt-1">
-                                    {% csrf_token %}
-                                    <select name="status" class="form-select form-select-sm me-1" style="font-size: 0.9em; padding: 0.2rem 1.5rem 0.2rem 0.5rem;">
-                                        <option value="pending" {% if task.status == 'pending' %}selected{% endif %}>รอดำเนินการ</option>
-                                        <option value="in_progress" {% if task.status == 'in_progress' %}selected{% endif %}>กำลังทำ</option>
-                                        <option value="completed" {% if task.status == 'completed' %}selected{% endif %}>เสร็จสิ้น</option>
-                                    </select>
-                                    <button type="submit" class="btn btn-sm btn-outline-success px-2" style="font-size: 0.9em;">บันทึก</button>
-                                </form>
-                                {% endif %}
-                            </div>
-                        {% endfor %}
-                    {% else %}
-                        <p class="text-muted fst-italic" style="font-size: 0.85em;">- ยังไม่มีงานค้าง -</p>
+                        <div class="text-muted"><i class="bi bi-hourglass-split"></i> วันนี้ยังไม่ได้ลงเวลา</div>
                     {% endif %}
                 </div>
                 
-                <!-- ปุ่มจัดการส่วนล่างของการ์ด (ล็อกสิทธิ์เฉพาะแอดมิน) -->
-                {% if request.user.is_superuser or request.user.is_staff %}
-                <div class="card-footer bg-white border-top-0 pb-3">
-                    <div class="row g-2">
-                        <div class="col-6">
-                            <a href="{% url 'edit' emp.id %}" class="btn btn-outline-warning btn-sm w-100">แก้ไข</a>
-                        </div>
-                        <div class="col-6">
-                            <a href="{% url 'delete' emp.id %}" class="btn btn-outline-danger btn-sm w-100">ลบ</a>
-                        </div>
-                        <div class="col-12 mt-2">
-                            <a href="{% url 'assign_task' emp.id %}" class="btn btn-info btn-sm w-100 text-white fw-bold">สั่งงาน</a>
-                        </div>
-                    </div>
+                <!-- งานที่ได้รับมอบหมาย -->
+                <p class="small fw-bold text-primary mb-2">งานที่ได้รับมอบหมาย:</p>
+                <div class="small text-muted">
+                    {% if emp.task_set.all %}
+                        <ul class="list-unstyled mb-0">
+                        {% for task in emp.task_set.all %}
+                            <li>- {{ task.title }}</li>
+                        {% endfor %}
+                        </ul>
+                    {% else %}
+                        - ยังไม่มีงานค้าง -
+                    {% endif %}
                 </div>
-                {% endif %}
-
             </div>
+            
+            <!-- ปุ่ม Action แก้ไข/ลบ (แสดงเฉพาะ Admin) -->
+            {% if user.is_superuser or user.is_staff %}
+            <div class="card-footer bg-white border-0 d-flex gap-2 p-3 pt-0">
+                <a href="{% url 'edit' emp.id %}" class="btn btn-warning btn-sm w-100 text-dark fw-bold">แก้ไข</a>
+                <a href="{% url 'delete' emp.id %}" class="btn btn-danger btn-sm w-100 fw-bold" onclick="return confirm('คุณต้องการลบพนักงานคนนี้ใช่หรือไม่?');">ลบ</a>
+            </div>
+            {% endif %}
+            
         </div>
-        {% empty %}
-        <div class="col-12 text-center mt-5">
-            <h5 class="text-muted">ไม่พบข้อมูลพนักงานในระบบ</h5>
-        </div>
-        {% endfor %}
     </div>
-
-    <!-- ระบบ Pagination แบ่งหน้า -->
-    {% if employees.has_other_pages %}
-    <nav aria-label="Page navigation" class="mt-4 mb-5">
-        <ul class="pagination justify-content-center">
-            {% if employees.has_previous %}
-                <li class="page-item"><a class="page-link" href="?page={{ employees.previous_page_number }}">ก่อนหน้า</a></li>
-            {% endif %}
-            
-            {% for i in employees.paginator.page_range %}
-                {% if employees.number == i %}
-                    <li class="page-item active"><span class="page-link">{{ i }}</span></li>
-                {% else %}
-                    <li class="page-item"><a class="page-link" href="?page={{ i }}">{{ i }}</a></li>
-                {% endif %}
-            {% endfor %}
-            
-            {% if employees.has_next %}
-                <li class="page-item"><a class="page-link" href="?page={{ employees.next_page_number }}">ถัดไป</a></li>
-            {% endif %}
-        </ul>
-    </nav>
-    {% endif %}
-
+    {% empty %}
+    <div class="col-12 text-center py-5">
+        <h5 class="text-muted">ไม่พบข้อมูลพนักงาน</h5>
+    </div>
+    {% endfor %}
 </div>
+
+<!-- ระบบเปลี่ยนหน้า (Pagination) -->
+{% if employees.has_other_pages %}
+<nav aria-label="Page navigation" class="mt-4 pb-4">
+    <ul class="pagination justify-content-center">
+        {% if employees.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page={{ employees.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}">ก่อนหน้า</a></li>
+        {% endif %}
+        
+        {% for num in employees.paginator.page_range %}
+            {% if employees.number == num %}
+                <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+            {% else %}
+                <li class="page-item"><a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}">{{ num }}</a></li>
+            {% endif %}
+        {% endfor %}
+        
+        {% if employees.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ employees.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}">ถัดไป</a></li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
 {% endblock %}

@@ -1,78 +1,79 @@
 {% extends 'basetemplate.html' %}
-
-{% title %}รายงานการลงเวลาพนักงาน - EmployeeHub{% endtitle %}
+{% block title %}รายงานการลงเวลาพนักงาน - EmployeeHub{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
+<div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2 class="fw-bold mb-1"><i class="bi bi-clipboard-check text-success"></i> รายงานการลงเวลาทำงานพนักงาน</h2>
-            <p class="text-muted mb-0">ประจำวันที่: {{ today|date:"d M Y" }}</p>
+            <h2 class="fw-bold mb-1"><i class="bi bi-people-fill text-primary me-2"></i> จัดการข้อมูลและรายงานการลงเวลาพนักงาน</h2>
+            <p class="text-muted mb-0">ประจำวันที่: {{ today }}</p>
         </div>
-        <a href="{% url 'index' %}" class="btn btn-secondary">กลับหน้าหลัก</a>
+        <a href="{% url 'index' %}" class="btn btn-outline-secondary rounded-pill px-4">กลับหน้าหลัก</a>
     </div>
 
-    <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-dark">
-                        <tr>
-                            <th class="ps-4">พนักงาน</th>
-                            <th>แผนก</th>
-                            <th>เวลาเข้างาน (Check-in)</th>
-                            <th>เวลาออกงาน (Check-out)</th>
-                            <th>พิกัด GPS</th>
-                            <th class="text-center">สถานะวันนี้</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for emp in employees %}
-                            {% with att=attendances|get_item:emp.id %}
-                            <tr>
-                                <td class="ps-4 fw-bold">
-                                    {% if emp.image %}
-                                        <img src="{{ emp.image.url }}" class="rounded-circle me-2" style="width: 35px; height: 35px; object-fit: cover;">
-                                    {% endif %}
-                                    {{ emp.fname }} {{ emp.lname }}
-                                </td>
-                                <td><span class="badge bg-primary">{{ emp.department|default:"-" }}</span></td>
-                                <td>
-                                    {% if att and att.check_in %}
-                                        <span class="text-success fw-semibold"><i class="bi bi-clock"></i> {{ att.check_in|date:"H:i:s" }} น.</span>
-                                    {% else %}
-                                        <span class="text-muted">-</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if att and att.check_out %}
-                                        <span class="text-danger fw-semibold"><i class="bi bi-clock-history"></i> {{ att.check_out|date:"H:i:s" }} น.</span>
-                                    {% else %}
-                                        <span class="text-muted">ยังไม่ออกงาน</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if att and att.latitude %}
-                                        <a href="https://maps.google.com/?q={{ att.latitude }},{{ att.longitude }}" target="_blank" class="btn btn-sm btn-outline-info">
-                                            📍 ดูแผนที่
-                                        </a>
-                                    {% else %}
-                                        <span class="text-muted">-</span>
-                                    {% endif %}
-                                </td>
-                                <td class="text-center">
-                                    {% if att and att.check_in %}
-                                        <span class="badge bg-success px-3 py-2">✅ เช็คอินแล้ว</span>
-                                    {% else %}
-                                        <span class="badge bg-secondary px-3 py-2">⏳ ยังไม่ลงเวลา</span>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% endwith %}
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-3">พนักงาน</th>
+                        <th>แผนก</th>
+                        <th>เวลาเข้างาน (Check-in)</th>
+                        <th>เวลาออกงาน (Check-out)</th>
+                        <th>พิกัด GPS</th>
+                        <th class="text-center">สถานะวันนี้</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for emp in employees %}
+                    <tr>
+                        <td class="ps-3 fw-bold">
+                            <div class="d-flex align-items-center gap-2">
+                                {% if emp.image %}
+                                    <img src="{{ emp.image.url }}" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;" alt="Avatar">
+                                {% else %}
+                                    <div class="rounded-circle bg-secondary text-white d-flex justify-content-center align-items-center" style="width: 40px; height: 40px; font-size: 14px;">-</div>
+                                {% endif %}
+                                <span>{{ emp.fname }} {{ emp.lname }}</span>
+                            </div>
+                        </td>
+                        <td><span class="badge bg-primary">{{ emp.department }}</span></td>
+                        <td>
+                            {% if emp.today_att and emp.today_att.check_in %}
+                                <span class="text-success fw-bold"><i class="bi bi-box-arrow-in-right"></i> {{ emp.today_att.check_in|date:"H:i" }} น.</span>
+                            {% else %}
+                                <span class="text-muted small">- ยังไม่เช็คอิน -</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if emp.today_att and emp.today_att.check_out %}
+                                <span class="text-danger fw-bold"><i class="bi bi-box-arrow-right"></i> {{ emp.today_att.check_out|date:"H:i" }} น.</span>
+                            {% else %}
+                                <span class="text-muted small">- ยังไม่เช็คเอาท์ -</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if emp.today_att and emp.today_att.latitude %}
+                                <span class="badge bg-light text-dark border"><i class="bi bi-geo-alt text-danger"></i> {{ emp.today_att.latitude|slice:":7" }}, {{ emp.today_att.longitude|slice:":7" }}</span>
+                            {% else %}
+                                <span class="text-muted small">ไม่มีพิกัด</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if emp.today_att and emp.today_att.check_in %}
+                                <span class="badge bg-success rounded-pill px-3 py-2">มาทำงาน</span>
+                            {% else %}
+                                <span class="badge bg-danger rounded-pill px-3 py-2">ยังไม่เข้างาน</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-4 text-muted">ไม่พบข้อมูลพนักงานในระบบ</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
 </div>

@@ -25,13 +25,27 @@
             </div>
 
             <!-- 🗺️ กรอบแผนที่ (Map Container) -->
-            <div class="map-wrapper mb-5 rounded-4 overflow-hidden shadow-sm border border-2 border-light position-relative" style="height: 400px; width: 100%; background-color: #e9ecef;">
+            <div class="map-wrapper mb-4 rounded-4 overflow-hidden shadow-sm border border-2 border-light position-relative" style="height: 400px; width: 100%; background-color: #e9ecef;">
                 <div id="map" class="w-100 h-100 d-flex justify-content-center align-items-center text-muted">
                     <div class="text-center">
                         <i class="bi bi-map fs-1 text-secondary opacity-50 mb-2"></i>
                         <p class="mb-0 small">แผนที่จะแสดงเมื่อได้รับพิกัด GPS</p>
                     </div>
                 </div>
+            </div>
+
+            <!-- 👤 แสดงชื่อพนักงานที่กำลังล็อกอิน (Personal Mode) -->
+            <div class="mb-4 text-start bg-light p-3 rounded-4 border">
+                <p class="fw-bold text-secondary small mb-1">ลงเวลาเข้างานในนาม:</p>
+                {% if employee %}
+                    <h5 class="text-primary fw-bold mb-0">
+                        <i class="bi bi-person-badge-fill me-2"></i> {{ employee.fname }} {{ employee.lname }}
+                    </h5>
+                {% else %}
+                    <div class="alert alert-danger mb-0 py-2 small">
+                        <i class="bi bi-exclamation-triangle-fill me-1"></i> บัญชีผู้ใช้นี้ยังไม่ได้ถูกผูกกับข้อมูลพนักงาน กรุณาติดต่อผู้ดูแลระบบ
+                    </div>
+                {% endif %}
             </div>
 
             <!-- 🔘 ปุ่มดำเนินการ (Action Buttons) -->
@@ -85,7 +99,6 @@
                     btnCheckout.classList.remove('disabled');
                 },
                 function(error) {
-                    // กรณีผู้ใช้ไม่อนุญาต GPS
                     statusBanner.style.backgroundColor = "#f8d7da";
                     statusBanner.style.color = "#842029";
                     statusText.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-1"></i> ไม่สามารถเข้าถึงตำแหน่งได้';
@@ -99,18 +112,22 @@
 
         // 2. ฟังก์ชันส่งข้อมูล Check-in / Check-out ไปยัง API
         function sendAttendanceData(type) {
+            // เช็คว่ามีข้อมูลพนักงานผูกไว้กับบัญชีนี้ไหม (ถ้าไม่มี employee ป้องกันการกด)
+            {% if not employee %}
+                alert("⚠️ บัญชีของคุณยังไม่ได้ผูกกับข้อมูลพนักงาน ไม่สามารถลงเวลาได้ครับ");
+                return;
+            {% endif %}
+
             if (!currentLat || !currentLng) {
-                alert("กรุณารอระบบค้นหาพิกัด GPS ก่อนทำรายการ");
+                alert("⏳ กรุณารอระบบค้นหาพิกัด GPS ก่อนทำรายการ");
                 return;
             }
 
-            // ในระบบจริง ควรส่ง employee_id ของผู้ใช้คนนั้นไปด้วย
-            // สมมติเราดึงจาก session หรืออาจจะต้องปรับ API เล็กน้อยให้รับค่าจาก user.id
+            // ส่งแค่ type กับพิกัด ไม่ต้องส่ง ID พนักงานแล้ว (Backend จัดการเอง)
             const data = {
                 type: type,
                 latitude: currentLat,
-                longitude: currentLng,
-                // employee_id: 'ใส่ไอดีพนักงานตรงนี้' 
+                longitude: currentLng
             };
 
             const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
@@ -127,7 +144,7 @@
             .then(data => {
                 if (data.message) {
                     alert('✅ ' + data.message);
-                    window.location.reload();
+                    window.location.reload(); // รีเฟรชหน้าเพื่อแสดงสถานะล่าสุด
                 } else {
                     alert('❌ ข้อผิดพลาด: ' + data.error);
                 }

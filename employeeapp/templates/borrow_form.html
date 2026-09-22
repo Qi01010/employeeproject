@@ -1,0 +1,29 @@
+{% extends 'basetemplate.html' %}
+{% block title %}ยืนยันการยืมอุปกรณ์ - EmployeeHub{% endblock %}
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+                <h3 class="fw-bold mb-3 text-primary"><i class="bi bi-laptop me-2"></i> ยืนยันการยืมอุปกรณ์</h3>
+                <hr class="mb-4">
+                
+                <div class="mb-4">
+                    <p class="text-muted mb-1">คุณกำลังจะทำรายการยืมอุปกรณ์ชิ้นนี้:</p>
+                    <h4 class="fw-bold text-dark">{{ equipment.name }}</h4>
+                    <p class="text-muted mb-0">รหัส Serial Number: <code>{{ equipment.serial_number }}</code></p>
+                    <p class="text-muted">หมวดหมู่: {{ equipment.category|default:"-" }}</p>
+                </div>
+
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 fw-bold shadow-sm">ยืนยันการยืม</button>
+                        <a href="{% url 'equipment_list' %}" class="btn btn-light w-100 rounded-pill py-2 fw-bold">ยกเลิก</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

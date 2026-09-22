@@ -1,0 +1,84 @@
+
+{% extends 'basetemplate.html' %}
+{% block title %}ระบบยืม-คืนอุปกรณ์ - EmployeeHub{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <h2 class="fw-bold mb-3"><i class="bi bi-laptop me-2"></i> ระบบจัดการยืม-คืนอุปกรณ์สำนักงาน</h2>
+    
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-success">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="row">
+        <!-- รายการอุปกรณ์ทั้งหมด -->
+        <div class="col-md-7">
+            <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+                <h4 class="fw-bold mb-3">รายการอุปกรณ์ในบริษัท</h4>
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr>
+                                <th>ชื่ออุปกรณ์</th>
+                                <th>Serial No.</th>
+                                <th>สถานะ</th>
+                                <th>จัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for eq in equipments %}
+                            <tr>
+                                <td class="fw-semibold">{{ eq.name }}</td>
+                                <td><code>{{ eq.serial_number }}</code></td>
+                                <td>
+                                    {% if eq.status == 'available' %}
+                                        <span class="badge bg-success">พร้อมใช้งาน</span>
+                                    {% elif eq.status == 'borrowed' %}
+                                        <span class="badge bg-danger">กำลังถูกยืม</span>
+                                    {% else %}
+                                        <span class="badge bg-warning text-dark">ซ่อมบำรุง</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if eq.status == 'available' %}
+                                        <a href="{% url 'borrow_equipment' eq.id %}" class="btn btn-outline-primary btn-sm rounded-pill px-3">ยืมอุปกรณ์</a>
+                                    {% else %}
+                                        <button class="btn btn-secondary btn-sm rounded-pill px-3" disabled>ไม่ว่าง</button>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ประวัติการยืม-คืน -->
+        <div class="col-md-5">
+            <div class="card border-0 shadow-sm rounded-4 p-4">
+                <h4 class="fw-bold mb-3">ประวัติการยืมปัจจุบัน</h4>
+                <ul class="list-group list-group-flush">
+                    {% for b in borrows %}
+                        {% if b.status == 'borrowing' %}
+                        <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="fw-bold mb-0">{{ b.equipment.name }}</h6>
+                                <small class="text-muted">ผู้ยืม: {{ b.employee.fname }} {{ b.employee.lname }}</small><br>
+                                <small class="text-muted">วันที่ยืม: {{ b.borrow_date }}</small>
+                            </div>
+                            {% if user.is_superuser or user.is_staff %}
+                            <a href="{% url 'return_equipment' b.id %}" class="btn btn-success btn-sm rounded-pill">รับคืน</a>
+                            {% endif %}
+                        </li>
+                        {% endif %}
+                    {% empty %}
+                        <p class="text-muted small">ไม่มีรายการยืมในขณะนี้</p>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
