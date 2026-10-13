@@ -1,0 +1,16 @@
+{% extends 'basetemplate.html' %}
+{% block title %}จุดเช็กชื่อคงที่ - EmployeeHub{% endblock %}
+{% block content %}
+<div class="card border-0 shadow-sm rounded-4 p-4 mx-auto" style="max-width:800px">
+  <h3>จุดเช็กชื่อคงที่ • รัศมี {{ attendance_radius }} เมตร</h3>
+  <p>ระบบใช้พิกัดที่กำหนดไว้ของคณะวิทยาศาสตร์และเทคโนโลยี มหาวิทยาลัยราชภัฏกำแพงเพชร ไม่ต้องเปิดหน้าเว็บส่งตำแหน่งโฮสต์ และคอมพิวเตอร์โฮสต์ไม่ต้องมี GPS</p>
+  <dl class="row">
+    <dt class="col-sm-4">ละติจูด</dt><dd class="col-sm-8">{{ attendance_center_latitude }}</dd>
+    <dt class="col-sm-4">ลองจิจูด</dt><dd class="col-sm-8">{{ attendance_center_longitude }}</dd>
+    <dt class="col-sm-4">รัศมีอนุญาต</dt><dd class="col-sm-8">{{ attendance_radius }} เมตร</dd>
+  </dl>
+  <a class="btn btn-outline-primary align-self-start" target="_blank" rel="noopener noreferrer"
+     href="https://www.google.com/maps/search/?api=1&query={{ attendance_center_latitude }},{{ attendance_center_longitude }}">เปิดจุดบน Google Maps</a>
+  <div class="alert alert-info mt-3 mb-0">พนักงานยังต้องอนุญาตตำแหน่งบนมือถือหรืออุปกรณ์ที่ใช้ลงเวลา และเปิดเว็บผ่าน HTTPS เพื่อให้เบราว์เซอร์ส่งพิกัดได้</div>
+</div>
+{% endblock %}

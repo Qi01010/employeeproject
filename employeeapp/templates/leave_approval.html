@@ -54,8 +54,8 @@
                         <td class="text-center">
                             {% if leave.status == 'pending' %}
                                 <div class="d-flex justify-content-center gap-2">
-                                    <a href="{% url 'update_leave_status' leave.id 'approve' %}" class="btn btn-sm btn-success px-3">อนุมัติ</a>
-                                    <a href="{% url 'update_leave_status' leave.id 'reject' %}" class="btn btn-sm btn-outline-danger px-3">ไม่อนุมัติ</a>
+                                    <form method="post" action="{% url 'update_leave_status' leave.id 'approve' %}" class="d-inline" onsubmit="return confirm('ยืนยันการดำเนินการ?');">{% csrf_token %}<button type="submit" class="btn btn-sm btn-success px-3">อนุมัติ</button></form>
+                                    <form method="post" action="{% url 'update_leave_status' leave.id 'reject' %}" class="d-inline" onsubmit="return confirm('ยืนยันการดำเนินการ?');">{% csrf_token %}<button type="submit" class="btn btn-sm btn-outline-danger px-3">ไม่อนุมัติ</button></form>
                                 </div>
                             {% else %}
                                 <span class="text-muted small fst-italic">เสร็จสิ้น</span>

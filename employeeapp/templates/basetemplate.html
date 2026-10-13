@@ -57,10 +57,10 @@
                         <a class="nav-link px-3" href="{% url 'attendance_page' %}">เช็คชื่อเข้างาน</a>
                     </li>
                     
-                    <!-- ⭐️ เมนูจัดการข้อมูลพนักงาน (แสดงเฉพาะแอดมิน) -->
+                    <!-- เมนูเพิ่มพนักงาน (แสดงเฉพาะแอดมิน) -->
                     {% if user.is_superuser or user.is_staff %}
                     <li class="nav-item">
-                        <a class="nav-link px-3" href="{% url 'attendance_report' %}">จัดการข้อมูลพนักงาน</a>
+                        <a class="nav-link px-3" href="{% url 'employee' %}">เพิ่มพนักงานใหม่</a>
                     </li>
                     {% endif %}
                     
@@ -71,16 +71,21 @@
                         </a>
                         <ul class="dropdown-menu border-0 shadow rounded-3 mt-2" aria-labelledby="navbarDropdown">
                             
-                            <!-- 1. ยื่นใบลา (สำหรับทุกคน) -->
+                            <!-- 1. ยื่นใบลา (เฉพาะผู้ใช้ทั่วไปที่เข้าสู่ระบบ) -->
+                            {% if user.is_authenticated and not user.is_superuser and not user.is_staff %}
                             <li>
                                 <a class="dropdown-item py-2 text-dark" href="{% url 'request_leave' %}">
                                     <i class="bi bi-envelope-paper-fill me-2 text-muted"></i>ยื่นใบลา
                                 </a>
                             </li>
                             
+                            {% endif %}
+
                             <!-- เมนูเฉพาะ Admin / ผู้บริหาร -->
                             {% if user.is_superuser or user.is_staff %}
                             
+                            <li><a class="dropdown-item py-2 text-dark" href="{% url 'attendance_host' %}"><i class="bi bi-geo-alt-fill me-2"></i>ดูจุดเช็กชื่อคงที่ ({{ attendance_radius }} เมตร)</a></li>
+                            <li><a class="dropdown-item py-2 text-dark" href="{% url 'attendance_report' %}"><i class="bi bi-clock-history me-2"></i>ประวัติลงเวลา</a></li>
                             <!-- 2. อนุมัติใบลา (สลับขึ้นมาไว้ข้างบน) -->
                             <li>
                                 <a class="dropdown-item py-2 text-dark" href="{% url 'leave_approval_list' %}">

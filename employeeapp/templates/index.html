@@ -1,4 +1,5 @@
 {% extends 'basetemplate.html' %}
+{% load l10n %}
 
 {% block title %}หน้าหลัก - EmployeeHub{% endblock %}
 
@@ -40,12 +41,15 @@
                 <h5 class="card-title fw-bold mb-2">{{ emp.fname }} {{ emp.lname }}</h5>
                 <span class="badge bg-primary mb-3">{{ emp.department }}</span>
                 
+                {% if user.is_staff or user.is_superuser or emp.user_id == user.id %}
                 <p class="card-text small text-muted mb-1">{{ emp.address }}</p>
                 <p class="card-text small text-muted mb-2">เกิด: {{ emp.birthdate|default:"-" }}</p>
                 <h6 class="fw-bold mb-3">{{ emp.salary }} บาท</h6>
                 
+                {% endif %}
                 <hr class="text-muted opacity-25">
                 
+{% if user.is_staff or user.is_superuser or emp.user_id == user.id %}
                 <!-- สถานะการลงเวลาวันนี้ -->
                 <p class="small fw-bold text-success mb-2"><i class="bi bi-clock-history"></i> สถานะลงเวลาวันนี้:</p>
                 <div class="small text-muted mb-3">
@@ -62,11 +66,19 @@
                         {% else %}
                             <div class="text-muted mb-1">ออก: ยังไม่ออกงาน</div>
                         {% endif %}
+                        {% if user.is_superuser or user.is_staff %}
                         <div class="mt-2">
-                            <span class="badge rounded-pill border border-info text-info bg-white">
-                                <i class="bi bi-geo-alt"></i> หมุด GPS
-                            </span>
+                            {% if emp.today_attendance.latitude != None and emp.today_attendance.longitude != None %}
+                            <a class="badge rounded-pill border border-info text-info bg-white text-decoration-none"
+                               href="https://www.google.com/maps/search/?api=1&amp;query={{ emp.today_attendance.latitude|unlocalize|urlencode }},{{ emp.today_attendance.longitude|unlocalize|urlencode }}"
+                               target="_blank" rel="noopener noreferrer" title="ดูตำแหน่งที่บันทึกเข้างาน">
+                                <i class="bi bi-geo-alt"></i> ดูหมุด GPS
+                            </a>
+                            {% else %}
+                            <span class="text-muted small">ไม่มีพิกัด</span>
+                            {% endif %}
                         </div>
+                        {% endif %}
                     {% else %}
                         <div class="text-muted"><i class="bi bi-hourglass-split"></i> วันนี้ยังไม่ได้ลงเวลา</div>
                     {% endif %}
@@ -75,23 +87,28 @@
                 <!-- งานที่ได้รับมอบหมาย -->
                 <p class="small fw-bold text-primary mb-2">งานที่ได้รับมอบหมาย:</p>
                 <div class="small text-muted">
-                    {% if emp.task_set.all %}
+                    {% if emp.tasks.all %}
                         <ul class="list-unstyled mb-0">
-                        {% for task in emp.task_set.all %}
-                            <li>- {{ task.title }}</li>
+                        {% for task in emp.tasks.all %}
+                            <li class="mb-2">{{ task.title }} ({{ task.get_status_display }})
+<form method="post" action="{% url 'update_task_status' task.id %}">{% csrf_token %}
+<select name="status" class="form-select form-select-sm"><option value="pending" {% if task.status == 'pending' %}selected{% endif %}>รอดำเนินการ</option><option value="in_progress" {% if task.status == 'in_progress' %}selected{% endif %}>กำลังดำเนินการ</option><option value="completed" {% if task.status == 'completed' %}selected{% endif %}>เสร็จสิ้น</option></select><button class="btn btn-sm btn-primary mt-1">บันทึกสถานะ</button></form>
+{% if user.is_staff or user.is_superuser %}<form method="post" action="{% url 'delete_task' task.id %}" onsubmit="return confirm('ลบงานนี้?');">{% csrf_token %}<button class="btn btn-sm btn-outline-danger mt-1">ลบงาน</button></form>{% endif %}</li>
                         {% endfor %}
                         </ul>
                     {% else %}
                         - ยังไม่มีงานค้าง -
                     {% endif %}
                 </div>
+{% endif %}
             </div>
             
+            {% if user.is_staff or user.is_superuser %}<a class="btn btn-sm btn-outline-primary mx-3 mb-2" href="{% url 'assign_task' emp.id %}">มอบหมายงาน</a>{% endif %}
             <!-- ปุ่ม Action แก้ไข/ลบ (แสดงเฉพาะ Admin) -->
             {% if user.is_superuser or user.is_staff %}
             <div class="card-footer bg-white border-0 d-flex gap-2 p-3 pt-0">
                 <a href="{% url 'edit' emp.id %}" class="btn btn-warning btn-sm w-100 text-dark fw-bold">แก้ไข</a>
-                <a href="{% url 'delete' emp.id %}" class="btn btn-danger btn-sm w-100 fw-bold" onclick="return confirm('คุณต้องการลบพนักงานคนนี้ใช่หรือไม่?');">ลบ</a>
+                <form method="post" action="{% url 'delete' emp.id %}" class="d-inline" onsubmit="return confirm('ยืนยันการดำเนินการ?');">{% csrf_token %}<button type="submit" class="btn btn-danger btn-sm w-100 fw-bold">ลบ</button></form>
             </div>
             {% endif %}
             

@@ -38,6 +38,9 @@ class Task(models.Model):
         return f"{self.title} ({self.employee.fname})"
 
 class Attendance(models.Model):
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['employee', 'date'], name='unique_employee_attendance_day')]
+
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='attendances', verbose_name="พนักงาน")
     date = models.DateField(auto_now_add=True, verbose_name="วันที่ลงเวลา")
     check_in = models.DateTimeField(null=True, blank=True, verbose_name="เวลาเข้างาน")
@@ -106,3 +109,12 @@ class EquipmentBorrow(models.Model):
 
     def __str__(self):
         return f"{self.employee} ยืม {self.equipment}"
+
+class AttendanceHost(models.Model):
+    # One shared center across all Django workers; always accessed with pk=1.
+    latitude = models.FloatField(default=0)
+    longitude = models.FloatField(default=0)
+    accuracy = models.FloatField(default=0)
+    updated_at = models.DateTimeField(null=True, blank=True)
+    active = models.BooleanField(default=False)
+    owner_token = models.CharField(max_length=64, blank=True)

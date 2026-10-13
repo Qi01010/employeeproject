@@ -8,6 +8,8 @@ router.register(r'employees', views.EmployeeViewSet, basename='api-employee')
 router.register(r'tasks', views.TaskViewSet, basename='api-task')
 
 urlpatterns = [
+    path('attendance/distance/', views.attendance_distance, name='attendance_distance'),
+    path('attendance/host/', views.attendance_host, name='attendance_host'),
     # 🔐 ระบบบัญชีผู้ใช้ (ย้ายมาจาก userapp)
     path('login/', views.login_view, name='login'),       # หน้าเข้าสู่ระบบ
     path('register/', views.register, name='register'),   # หน้าสมัครสมาชิก

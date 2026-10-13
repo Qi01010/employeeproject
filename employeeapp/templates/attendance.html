@@ -67,97 +67,76 @@
 
 <!-- ⚙️ ส่วนของ JavaScript ดึง GPS และแสดง Google Maps -->
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        const coordDisplay = document.getElementById('coord-display');
-        const statusBanner = document.getElementById('status-banner');
-        const statusText = document.getElementById('status-text');
-        const mapContainer = document.getElementById('map');
-        const btnCheckin = document.getElementById('btn-checkin');
-        const btnCheckout = document.getElementById('btn-checkout');
-        
-        let currentLat = null;
-        let currentLng = null;
-
-        // 1. ฟังก์ชันดึงตำแหน่ง GPS
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                function(position) {
-                    currentLat = position.coords.latitude;
-                    currentLng = position.coords.longitude;
-                    
-                    // อัปเดตป้ายสถานะเป็นสีเขียว
-                    statusBanner.style.backgroundColor = "#d1e7dd";
-                    statusBanner.style.color = "#0f5132";
-                    statusText.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> ตรวจพบพิกัดสำเร็จ';
-                    coordDisplay.innerText = `Lat: ${currentLat.toFixed(4)}, Lng: ${currentLng.toFixed(4)}`;
-                    
-                    // ฝัง Google Maps ลงในกรอบ
-                    mapContainer.innerHTML = `<iframe width="100%" height="100%" frameborder="0" style="border:0" src="https://maps.google.com/maps?q=${currentLat},${currentLng}&hl=th&z=16&output=embed" allowfullscreen></iframe>`;
-                    
-                    // ปลดล็อกปุ่มให้กดได้
-                    btnCheckin.classList.remove('disabled');
-                    btnCheckout.classList.remove('disabled');
-                },
-                function(error) {
-                    statusBanner.style.backgroundColor = "#f8d7da";
-                    statusBanner.style.color = "#842029";
-                    statusText.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-1"></i> ไม่สามารถเข้าถึงตำแหน่งได้';
-                    coordDisplay.innerText = "โปรดอนุญาต GPS ในเบราว์เซอร์";
-                    mapContainer.innerHTML = '<div class="text-danger">ไม่สามารถแสดงแผนที่ได้ เนื่องจากไม่ได้รับอนุญาตให้เข้าถึงตำแหน่ง</div>';
-                }
-            );
-        } else {
-            statusText.innerText = "เบราว์เซอร์ไม่รองรับ GPS";
-        }
-
-        // 2. ฟังก์ชันส่งข้อมูล Check-in / Check-out ไปยัง API
-        function sendAttendanceData(type) {
-            // เช็คว่ามีข้อมูลพนักงานผูกไว้กับบัญชีนี้ไหม (ถ้าไม่มี employee ป้องกันการกด)
-            {% if not employee %}
-                alert("⚠️ บัญชีของคุณยังไม่ได้ผูกกับข้อมูลพนักงาน ไม่สามารถลงเวลาได้ครับ");
-                return;
-            {% endif %}
-
-            if (!currentLat || !currentLng) {
-                alert("⏳ กรุณารอระบบค้นหาพิกัด GPS ก่อนทำรายการ");
-                return;
-            }
-
-            // ส่งแค่ type กับพิกัด ไม่ต้องส่ง ID พนักงานแล้ว (Backend จัดการเอง)
-            const data = {
-                type: type,
-                latitude: currentLat,
-                longitude: currentLng
-            };
-
-            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-
-            fetch('/api/attendance/record/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrfToken
-                },
-                body: JSON.stringify(data)
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.message) {
-                    alert('✅ ' + data.message);
-                    window.location.reload(); // รีเฟรชหน้าเพื่อแสดงสถานะล่าสุด
-                } else {
-                    alert('❌ ข้อผิดพลาด: ' + data.error);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('เกิดข้อผิดพลาดในการส่งข้อมูล');
+document.addEventListener('DOMContentLoaded', () => {
+    const banner=document.getElementById('status-banner');
+    const status=document.getElementById('status-text');
+    const coords=document.getElementById('coord-display');
+    const buttons=[document.getElementById('btn-checkin'),document.getElementById('btn-checkout')];
+    const distanceStatus=document.createElement('p');
+    distanceStatus.className='alert alert-info';
+    distanceStatus.textContent='กำลังตรวจระยะจากจุดเช็กชื่อคงที่...';
+    banner.after(distanceStatus);
+    let distanceBusy=false;
+    async function refreshDistance() {
+        if(distanceBusy) return;
+        distanceBusy=true;
+        try {
+            const p=await locate();
+            const response=await fetch("{% url 'attendance_distance' %}", {
+                method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json',
+                'X-CSRFToken':document.querySelector('[name=csrfmiddlewaretoken]').value},
+                body:JSON.stringify({latitude:p.coords.latitude,longitude:p.coords.longitude,accuracy:p.coords.accuracy})
             });
-        }
-
-        // ผูก Event ให้ปุ่มกด
-        btnCheckin.addEventListener('click', () => sendAttendanceData('in'));
-        btnCheckout.addEventListener('click', () => sendAttendanceData('out'));
-    });
+            const d=await response.json();
+            if(!response.ok) throw new Error(d.error || 'ตรวจระยะไม่สำเร็จ');
+            distanceStatus.textContent=`ห่างจากจุดเช็กชื่อ ${d.distance} เมตร / อนุญาต ${d.radius} เมตร • ${d.within?'อยู่ในพื้นที่':'อยู่นอกพื้นที่'}`;
+        } catch(e) {distanceStatus.textContent=e.code?'อ่านตำแหน่งไม่ได้ กรุณาอนุญาตตำแหน่ง':e.message;}
+        finally {distanceBusy=false;}
+    }
+    const locate=()=>new Promise((resolve,reject)=>navigator.geolocation.getCurrentPosition(resolve,reject,
+        {enableHighAccuracy:true, maximumAge:0, timeout:15000}));
+    function lock(value) {buttons.forEach(b=>{b.disabled=value;b.classList.toggle('disabled',value);});}
+    function show(p) {
+        coords.textContent=`Lat: ${p.coords.latitude.toFixed(6)}, Lng: ${p.coords.longitude.toFixed(6)} (±${Math.round(p.coords.accuracy)} ม.)`;
+        banner.querySelector('.spinner-border')?.remove();
+    }
+    async function record(type) {
+        lock(true);
+        status.textContent='กำลังรับตำแหน่งใหม่และตรวจระยะ {{ attendance_radius }} เมตร...';
+        try {
+            const p=await locate();show(p);
+            const response=await fetch("{% url 'record_attendance' %}", {
+                method:'POST',credentials:'same-origin',
+                headers:{'Content-Type':'application/json','X-CSRFToken':document.querySelector('[name=csrfmiddlewaretoken]').value},
+                body:JSON.stringify({type,latitude:p.coords.latitude,longitude:p.coords.longitude,accuracy:p.coords.accuracy})
+            });
+            const data=await response.json();
+            if(!response.ok) throw new Error(data.error || data.detail || 'ลงเวลาไม่สำเร็จ');
+            status.textContent=data.message;alert(data.message);window.location.reload();
+        } catch(e) {
+            status.textContent=e.code?'รับตำแหน่งไม่ได้ กรุณาอนุญาตตำแหน่งแล้วลองอีกครั้ง':e.message;
+            banner.style.backgroundColor='#f8d7da';banner.style.color='#842029';
+        } finally {lock(false);}
+    }
+    lock(true);
+    {% if employee %}
+    if(window.isSecureContext && navigator.geolocation) {
+        status.textContent='พร้อมรับตำแหน่งเมื่อกดลงเวลา (ภายใน {{ attendance_radius }} เมตรจากจุดคงที่)';
+        banner.querySelector('.spinner-border')?.remove();
+        lock(false);
+        refreshDistance(); setInterval(refreshDistance,15000);
+        locate().then(p=>{
+            show(p);
+            const frame=document.createElement('iframe');frame.width='100%';frame.height='100%';frame.style.border='0';
+            frame.title='ตำแหน่งปัจจุบันของคุณ';
+            frame.src=`https://maps.google.com/maps?q=${p.coords.latitude},${p.coords.longitude}&hl=th&z=16&output=embed`;
+            document.getElementById('map').replaceChildren(frame);
+        }).catch(()=>{coords.textContent='กรุณาอนุญาตตำแหน่ง แล้วกดลงเวลาเพื่อลองใหม่';});
+        buttons[0].onclick=()=>record('in');buttons[1].onclick=()=>record('out');
+    } else status.textContent='ต้องใช้ HTTPS หรือ localhost และเบราว์เซอร์ที่รองรับตำแหน่ง';
+    {% else %}
+    status.textContent='บัญชียังไม่ได้ผูกกับพนักงาน กรุณาติดต่อแอดมิน';
+    {% endif %}
+});
 </script>
 {% endblock %}
